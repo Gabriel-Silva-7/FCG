@@ -13,11 +13,14 @@ public sealed class Email
 
     public static Email Create(string value)
     {
-        if (!MailAddress.TryCreate(value, out var parsedEmail) || parsedEmail.Address != value)
+        var normalizedValue = value.Trim().ToLowerInvariant();
+
+        if (!MailAddress.TryCreate(normalizedValue, out var parsedEmail) ||
+            parsedEmail.Address != normalizedValue)
         {
             throw new ArgumentException("Email format is invalid.", nameof(value));
         }
 
-        return new Email(value);
+        return new Email(normalizedValue);
     }
 }
