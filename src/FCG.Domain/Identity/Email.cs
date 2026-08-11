@@ -2,9 +2,9 @@ using System.Net.Mail;
 
 namespace FCG.Domain.Identity;
 
-public sealed class Email : IEquatable<Email>
+public sealed record Email
 {
-    private const int MaximumLength = 256;
+    public const int MaxLength = 256;
 
     private Email(string value)
     {
@@ -19,7 +19,7 @@ public sealed class Email : IEquatable<Email>
 
         var normalizedValue = value.Trim().ToLowerInvariant();
 
-        if (normalizedValue.Length > MaximumLength ||
+        if (normalizedValue.Length > MaxLength ||
             !MailAddress.TryCreate(normalizedValue, out var parsedEmail) ||
             parsedEmail.Address != normalizedValue)
         {
@@ -28,13 +28,6 @@ public sealed class Email : IEquatable<Email>
 
         return new Email(normalizedValue);
     }
-
-    public bool Equals(Email? other) =>
-        other is not null && StringComparer.Ordinal.Equals(Value, other.Value);
-
-    public override bool Equals(object? obj) => obj is Email other && Equals(other);
-
-    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
 
     public override string ToString() => Value;
 }

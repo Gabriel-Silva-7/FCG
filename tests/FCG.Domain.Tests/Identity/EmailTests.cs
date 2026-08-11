@@ -14,7 +14,12 @@ public sealed class EmailTests
     public void Create_WhenValueExceeds256Characters_ThrowsArgumentException()
     {
         var localPart = new string('a', 64);
-        var domain = string.Join('.', new string('b', 48), new string('c', 48), new string('d', 48), new string('e', 45));
+        var domain = string.Join(
+            '.',
+            new string('b', 48),
+            new string('c', 48),
+            new string('d', 48),
+            new string('e', 45));
         var value = $"{localPart}@{domain}";
 
         Assert.Equal(257, value.Length);
@@ -48,6 +53,7 @@ public sealed class EmailTests
 
     [Theory]
     [InlineData("")]
+    [InlineData("   ")]
     [InlineData("invalid-email")]
     [InlineData("missing-domain@")]
     [InlineData("@missing-local-part.com")]
