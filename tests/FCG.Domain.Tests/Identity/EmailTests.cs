@@ -61,4 +61,38 @@ public sealed class EmailTests
     {
         Assert.Throws<ArgumentException>(() => Email.Create(value));
     }
+
+    [Theory]
+    [InlineData("first.last@example.com")]
+    [InlineData("user+tag@example.com")]
+    [InlineData("user@sub.example.com")]
+    [InlineData("user@example.co.uk")]
+    public void Create_WhenAddressIsValid_AcceptsEmail(string value)
+    {
+        var email = Email.Create(value);
+
+        Assert.Equal(value, email.Value);
+    }
+
+    [Fact]
+    public void TryCreate_WhenValueIsValid_ReturnsTrueAndNormalizedEmail()
+    {
+        var succeeded = Email.TryCreate("  User@Example.COM  ", out var email);
+
+        Assert.True(succeeded);
+        Assert.NotNull(email);
+        Assert.Equal("user@example.com", email.Value);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("invalid-email")]
+    public void TryCreate_WhenValueIsInvalid_ReturnsFalseWithoutThrowing(string? value)
+    {
+        var succeeded = Email.TryCreate(value, out var email);
+
+        Assert.False(succeeded);
+        Assert.Null(email);
+    }
 }

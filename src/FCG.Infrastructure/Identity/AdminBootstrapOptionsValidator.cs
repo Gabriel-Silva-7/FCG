@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using FCG.Domain.Identity;
 using Microsoft.Extensions.Options;
 
 namespace FCG.Infrastructure.Identity;
@@ -17,7 +17,7 @@ public sealed class AdminBootstrapOptionsValidator : IValidateOptions<AdminBoots
                 "Sem ambos, o bootstrap do administrador simplesmente não é executado.");
         }
 
-        if (hasEmail && !new EmailAddressAttribute().IsValid(options.Email))
+        if (hasEmail && !Email.TryCreate(options.Email, out _))
         {
             return ValidateOptionsResult.Fail(
                 $"{AdminBootstrapOptions.SectionName}:Email não é um e-mail válido.");
