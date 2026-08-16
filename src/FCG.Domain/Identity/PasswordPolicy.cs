@@ -3,6 +3,7 @@ namespace FCG.Domain.Identity;
 public static class PasswordPolicy
 {
     public const int MinimumLength = 8;
+    public const int MaximumLength = 128;
 
     public static void EnsureIsValid(string password)
     {
@@ -12,6 +13,13 @@ public static class PasswordPolicy
         {
             throw new ArgumentException(
                 $"Password must contain at least {MinimumLength} characters.",
+                nameof(password));
+        }
+
+        if (password.Length > MaximumLength)
+        {
+            throw new ArgumentException(
+                $"Password cannot exceed {MaximumLength} characters.",
                 nameof(password));
         }
 

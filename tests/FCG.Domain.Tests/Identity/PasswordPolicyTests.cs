@@ -64,6 +64,29 @@ public sealed class PasswordPolicyTests
     }
 
     [Fact]
+    public void EnsureIsValid_WhenPasswordExceedsMaximumLength_ThrowsArgumentException()
+    {
+        var password = "Ab1!" + new string('a', PasswordPolicy.MaximumLength);
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => PasswordPolicy.EnsureIsValid(password));
+
+        Assert.Equal("password", exception.ParamName);
+        Assert.Contains("cannot exceed", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EnsureIsValid_WhenPasswordHasMaximumLength_DoesNotThrow()
+    {
+        var password = "Ab1!" + new string('a', PasswordPolicy.MaximumLength - 4);
+
+        var exception = Record.Exception(
+            () => PasswordPolicy.EnsureIsValid(password));
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
     public void EnsureIsValid_WhenPasswordMeetsEveryRequirement_DoesNotThrow()
     {
         var exception = Record.Exception(
