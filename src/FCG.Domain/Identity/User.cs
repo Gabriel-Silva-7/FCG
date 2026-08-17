@@ -1,3 +1,5 @@
+using FCG.Domain.Common;
+
 namespace FCG.Domain.Identity;
 
 public sealed class User
@@ -68,10 +70,7 @@ public sealed class User
                 nameof(passwordHash));
         }
 
-        if (createdAtUtc.Kind is not DateTimeKind.Utc)
-        {
-            throw new ArgumentException("Creation date must be in UTC.", nameof(createdAtUtc));
-        }
+        DomainGuard.EnsureUtc(createdAtUtc, nameof(createdAtUtc));
 
         return new User(
             Guid.NewGuid(),

@@ -17,7 +17,7 @@ public class ArchitectureTests
 
     private static string GetDomainCsprojPath([CallerFilePath] string thisFilePath = "")
     {
-        var testsDir = Path.GetDirectoryName(thisFilePath)!; 
+        var testsDir = Path.GetDirectoryName(thisFilePath)!;
         var repoRoot = Path.GetFullPath(Path.Combine(testsDir, "..", ".."));
         return Path.Combine(repoRoot, "src", "FCG.Domain", "FCG.Domain.csproj");
     }
