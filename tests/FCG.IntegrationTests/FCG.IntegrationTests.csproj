@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FCG.Api\FCG.Api.csproj" />
+    <ProjectReference Include="..\..\src\FCG.Infrastructure\FCG.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
