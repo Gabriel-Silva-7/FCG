@@ -1,0 +1,23 @@
+name: fcg-local
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${FCG_POSTGRES_DB:-fcg}
+      POSTGRES_USER: ${FCG_POSTGRES_USER:-fcg}
+      POSTGRES_PASSWORD: ${FCG_POSTGRES_PASSWORD:-fcg-local-password}
+    ports:
+      - "127.0.0.1:${FCG_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
