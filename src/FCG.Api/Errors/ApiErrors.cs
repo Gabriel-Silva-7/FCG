@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace FCG.Api.Errors;
 
@@ -66,5 +67,25 @@ public static class ApiErrors
         }
 
         return ByCode.TryGetValue(code, out error);
+    }
+
+    public static ApiError ForStatus(int status)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(status, StatusCodes.Status400BadRequest);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(status, 599);
+
+        return status switch
+        {
+            StatusCodes.Status400BadRequest => ValidationError,
+            StatusCodes.Status401Unauthorized => Unauthenticated,
+            StatusCodes.Status403Forbidden => Forbidden,
+            StatusCodes.Status404NotFound => ResourceNotFound,
+            StatusCodes.Status429TooManyRequests => RateLimitExceeded,
+            StatusCodes.Status500InternalServerError => InternalError,
+            _ => new ApiError(
+                $"http_{status}",
+                status,
+                ReasonPhrases.GetReasonPhrase(status) is { Length: > 0 } title ? title : "HTTP error"),
+        };
     }
 }

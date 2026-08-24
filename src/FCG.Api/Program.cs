@@ -1,3 +1,4 @@
+using FCG.Api.Errors;
 using FCG.Application.Common;
 using FCG.Infrastructure.Catalog;
 using FCG.Infrastructure.Common;
@@ -8,6 +9,7 @@ using FCG.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddApiProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -20,6 +22,9 @@ builder.Services
     .AddLibraryModule();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {

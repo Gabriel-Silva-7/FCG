@@ -63,6 +63,43 @@ public sealed class ApiErrorsCatalogTests
     }
 
     [Theory]
+    [InlineData(400, "validation_error")]
+    [InlineData(401, "unauthenticated")]
+    [InlineData(403, "forbidden")]
+    [InlineData(404, "resource_not_found")]
+    [InlineData(429, "rate_limit_exceeded")]
+    [InlineData(500, "internal_error")]
+    public void ForStatus_ReturnsTheCuratedDefault(int status, string expectedCode)
+    {
+        var error = ApiErrors.ForStatus(status);
+
+        Assert.Equal(expectedCode, error.Code);
+        Assert.Equal(status, error.Status);
+    }
+
+    [Theory]
+    [InlineData(409)]
+    [InlineData(405)]
+    [InlineData(415)]
+    [InlineData(503)]
+    public void ForStatus_WhenStatusHasNoCatalogEntry_PreservesTheHttpStatus(int status)
+    {
+        var error = ApiErrors.ForStatus(status);
+
+        Assert.Equal($"http_{status}", error.Code);
+        Assert.Equal(status, error.Status);
+        Assert.Equal($"urn:fcg:error:http-{status}", error.Type);
+    }
+
+    [Theory]
+    [InlineData(399)]
+    [InlineData(600)]
+    public void ForStatus_WhenStatusIsNotAnError_Throws(int status)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ApiErrors.ForStatus(status));
+    }
+
+    [Theory]
     [InlineData(400)]
     [InlineData(401)]
     [InlineData(403)]
@@ -103,7 +140,6 @@ public sealed class ApiErrorsCatalogTests
         Assert.StartsWith("urn:fcg:error:", error.Type, StringComparison.Ordinal);
     }
 
-    // Um campo fora de All escaparia das invariantes e do lookup.
     [Fact]
     public void EveryDeclaredErrorFieldIsRegisteredInAll()
     {
