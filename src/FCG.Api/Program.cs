@@ -1,3 +1,4 @@
+using FCG.Api.Documentation;
 using FCG.Api.Errors;
 using FCG.Application.Common;
 using FCG.Infrastructure.Catalog;
@@ -10,8 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddApiProblemDetails();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddApiDocumentation();
 
 builder.Services.AddSingleton<IClock, SystemClock>();
 
