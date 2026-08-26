@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using FCG.Api.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCG.Api.Errors;
@@ -30,8 +30,7 @@ public static class ProblemDetailsConfiguration
             ? null
             : problemDetails.Detail;
         problemDetails.Extensions["code"] = error.Code;
-        problemDetails.Extensions["traceId"] =
-            Activity.Current?.Id ?? httpContext.TraceIdentifier;
+        problemDetails.Extensions["traceId"] = TraceIdentity.Resolve(httpContext);
     }
 
     private static ApiError ResolveError(HttpContext httpContext, ProblemDetails problemDetails)

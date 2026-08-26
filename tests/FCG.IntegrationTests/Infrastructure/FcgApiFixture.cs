@@ -21,6 +21,9 @@ public sealed class FcgApiFixture : IAsyncLifetime
     public WebApplicationFactory<Program> Factory =>
         _factory ?? throw new InvalidOperationException("A factory de integração ainda não foi inicializada.");
 
+    public CapturingLoggerProvider Logs =>
+        _factory?.Logs ?? throw new InvalidOperationException("A factory de integração ainda não foi inicializada.");
+
     public string ConnectionString => _postgres.GetConnectionString();
 
     public async Task InitializeAsync()
