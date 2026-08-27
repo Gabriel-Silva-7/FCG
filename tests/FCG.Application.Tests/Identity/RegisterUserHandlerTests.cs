@@ -88,6 +88,22 @@ public sealed class RegisterUserHandlerTests
         Assert.Empty(repository.AddedUsers);
     }
 
+    [Fact]
+    public async Task HandleAsync_WhenUniqueEmailRaceIsDetected_ReturnsConflict()
+    {
+        var repository = new FakeUserRepository { ThrowDuplicateOnSave = true };
+        var handler = CreateHandler(repository, new FakePasswordHasher("HASHED_PASSWORD"));
+
+        var result = await handler.HandleAsync(
+            new RegisterUserCommand("Gabriel", "gabriel@example.com", "Str0ng!Pass"),
+            CancellationToken.None);
+
+        Assert.Equal(RegisterUserStatus.EmailAlreadyRegistered, result.Status);
+        Assert.Null(result.User);
+        Assert.Single(repository.AddedUsers);
+        Assert.Equal(1, repository.SaveChangesCalls);
+    }
+
     private static RegisterUserHandler CreateHandler(
         FakeUserRepository repository,
         IPasswordHasher passwordHasher) =>
@@ -96,6 +112,8 @@ public sealed class RegisterUserHandlerTests
     private sealed class FakeUserRepository : IUserRepository
     {
         public bool EmailExists { get; init; }
+
+        public bool ThrowDuplicateOnSave { get; init; }
 
         public Email? LastCheckedEmail { get; private set; }
 
@@ -116,6 +134,12 @@ public sealed class RegisterUserHandlerTests
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {
             SaveChangesCalls++;
+
+            if (ThrowDuplicateOnSave)
+            {
+                throw new EmailAlreadyRegisteredException(new InvalidOperationException());
+            }
+
             return Task.CompletedTask;
         }
     }

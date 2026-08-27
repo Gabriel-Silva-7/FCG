@@ -6,6 +6,8 @@ namespace FCG.Infrastructure.Persistence.Configurations.Identity;
 
 public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    public const string UniqueEmailIndexName = "UX_Users_Email";
+
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable(
@@ -62,6 +64,6 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(user => user.Email)
             .IsUnique()
-            .HasDatabaseName("UX_Users_Email");
+            .HasDatabaseName(UniqueEmailIndexName);
     }
 }

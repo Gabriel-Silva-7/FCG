@@ -25,7 +25,15 @@ public sealed class RegisterUserHandler(
         var user = User.Register(name, email, passwordHash, clock.UtcNow);
 
         userRepository.Add(user);
-        await userRepository.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await userRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch (EmailAlreadyRegisteredException)
+        {
+            return RegisterUserResult.EmailAlreadyRegistered();
+        }
 
         return RegisterUserResult.Created(user);
     }

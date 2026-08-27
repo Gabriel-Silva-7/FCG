@@ -122,6 +122,44 @@ public sealed class RegisterUserEndpointTests(FcgApiFixture fixture) : DatabaseB
         Assert.Equal(1, await dbContext.Users.CountAsync());
     }
 
+    [Fact]
+    public async Task Register_WhenRequestsCompeteForTheSameEmail_ReturnsCreatedAndConflict()
+    {
+        using var client = CreateClient();
+        var requests = new[]
+        {
+            new { name = "First User", email = "race@example.com", password = "Str0ng!Pass" },
+            new { name = "Second User", email = "race@example.com", password = "An0ther!Pass" },
+        };
+
+        var responses = await Task.WhenAll(
+            requests.Select(request => client.PostAsJsonAsync(Endpoint, request)));
+
+        try
+        {
+            Assert.Equal(
+                [HttpStatusCode.Created, HttpStatusCode.Conflict],
+                responses.Select(response => response.StatusCode).Order());
+
+            var conflict = Assert.Single(
+                responses,
+                response => response.StatusCode is HttpStatusCode.Conflict);
+            var body = await conflict.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("email_already_registered", body.GetProperty("code").GetString());
+
+            await using var scope = Fixture.Factory.Services.CreateAsyncScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<FcgDbContext>();
+            Assert.Equal(1, await dbContext.Users.CountAsync());
+        }
+        finally
+        {
+            foreach (var response in responses)
+            {
+                response.Dispose();
+            }
+        }
+    }
+
     private HttpClient CreateClient() =>
         Fixture.Factory.CreateClient(
             new WebApplicationFactoryClientOptions
