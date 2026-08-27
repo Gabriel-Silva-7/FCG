@@ -71,6 +71,40 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public void RegisterOperation_DocumentsItsPublicContract()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/auth/register"]
+            .Operations[OperationType.Post];
+
+        Assert.Equal("Registers a new user account.", operation.Summary);
+        Assert.Empty(operation.Security);
+        Assert.Equal(
+            ["201", "400", "409", "429"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+
+        var requestSchema = operation.RequestBody.Content["application/json"].Schema;
+        var schema = document.Components.Schemas[requestSchema.Reference.Id];
+
+        Assert.Contains("name", schema.Properties.Keys);
+        Assert.Contains("email", schema.Properties.Keys);
+        Assert.Contains("password", schema.Properties.Keys);
+        Assert.DoesNotContain("role", schema.Properties.Keys);
+        Assert.DoesNotContain("isActive", schema.Properties.Keys);
+        Assert.DoesNotContain("passwordHash", schema.Properties.Keys);
+
+        var responseSchema = operation.Responses["201"].Content["application/json"].Schema;
+        var response = document.Components.Schemas[responseSchema.Reference.Id];
+
+        Assert.Contains("id", response.Properties.Keys);
+        Assert.Contains("name", response.Properties.Keys);
+        Assert.Contains("email", response.Properties.Keys);
+        Assert.Contains("role", response.Properties.Keys);
+        Assert.DoesNotContain("password", response.Properties.Keys);
+        Assert.DoesNotContain("passwordHash", response.Properties.Keys);
+    }
+
+    [Fact]
     public async Task SwaggerEndpoints_AreAvailableInDevelopment()
     {
         using var factory = fixture.Factory.WithWebHostBuilder(

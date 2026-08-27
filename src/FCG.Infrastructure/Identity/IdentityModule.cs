@@ -1,3 +1,4 @@
+using FCG.Application.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -21,6 +22,10 @@ public static class IdentityModule
             .AddOptions<AdminBootstrapOptions>()
             .Bind(configuration.GetSection(AdminBootstrapOptions.SectionName))
             .ValidateOnStart();
+
+        services.AddSingleton<IPasswordHasher, AspNetCorePasswordHasher>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<RegisterUserHandler>();
 
         return services;
     }

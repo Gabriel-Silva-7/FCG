@@ -71,6 +71,23 @@ public sealed class ErrorPipelineTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public async Task UnexpectedArgumentException_RemainsAnInternalError()
+    {
+        using var client = CreateClient();
+        using var response = await client.GetAsync("/_test/errors/throw-argument");
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+
+        AssertCanonicalProblem(
+            response,
+            document.RootElement,
+            StatusCodes.Status500InternalServerError,
+            "internal_error",
+            "/_test/errors/throw-argument");
+        Assert.DoesNotContain(ErrorTestController.ExceptionMessage, json, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task SpecificProblem_PreservesItsCodeAndReceivesRequestMetadata()
     {
         using var client = CreateClient();

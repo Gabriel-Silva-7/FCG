@@ -1,3 +1,4 @@
+using FCG.Application.Identity;
 using FCG.Infrastructure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,20 @@ public sealed class IdentityModuleTests
         using var host = BuildHost(values);
 
         await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());
+    }
+
+    [Fact]
+    public void PasswordHasher_HashesAndVerifiesWithoutPersistingPlaintext()
+    {
+        const string password = "Str0ng!Pass";
+        using var host = BuildHost(JwtConfiguration(ValidSigningKey));
+        var passwordHasher = host.Services.GetRequiredService<IPasswordHasher>();
+
+        var passwordHash = passwordHasher.Hash(password);
+
+        Assert.NotEqual(password, passwordHash);
+        Assert.True(passwordHasher.Verify(passwordHash, password));
+        Assert.False(passwordHasher.Verify(passwordHash, "Wr0ng!Pass"));
     }
 
     private static IHost BuildHost(Dictionary<string, string?> values)

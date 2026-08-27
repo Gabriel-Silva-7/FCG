@@ -16,6 +16,9 @@ public sealed class ErrorTestController : ControllerBase
     [HttpGet("throw")]
     public IActionResult Throw() => throw new InvalidOperationException(ExceptionMessage);
 
+    [HttpGet("throw-argument")]
+    public IActionResult ThrowArgument() => throw new ArgumentException(ExceptionMessage);
+
     [HttpGet("specific")]
     public IActionResult ReturnSpecificProblem()
     {

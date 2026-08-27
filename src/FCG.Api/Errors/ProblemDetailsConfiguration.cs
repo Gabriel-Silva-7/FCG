@@ -10,6 +10,7 @@ public static class ProblemDetailsConfiguration
         services.AddProblemDetails(
             options => options.CustomizeProblemDetails = context =>
                 ApplyContract(context.HttpContext, context.ProblemDetails));
+        services.AddExceptionHandler<ApplicationValidationExceptionHandler>();
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.Configure<MvcOptions>(
             options => options.Filters.Add<ProblemDetailsResultFilter>());
