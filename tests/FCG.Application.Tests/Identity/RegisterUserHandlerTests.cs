@@ -139,6 +139,13 @@ public sealed class RegisterUserHandlerTests
             CancellationToken cancellationToken) =>
             Task.FromResult<User?>(null);
 
+        public Task<PagedResult<AdminUserSummary>> SearchAsync(
+            string? search,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public void Add(User user) => AddedUsers.Add(user);
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)

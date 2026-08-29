@@ -1,3 +1,4 @@
+using FCG.Application.Common;
 using FCG.Application.Identity;
 using FCG.Domain.Identity;
 
@@ -57,6 +58,13 @@ public sealed class GetCurrentUserHandlerTests
             LastUserId = id;
             return Task.FromResult(user);
         }
+
+        public Task<PagedResult<AdminUserSummary>> SearchAsync(
+            string? search,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
 
         public void Add(User newUser) => throw new NotSupportedException();
 

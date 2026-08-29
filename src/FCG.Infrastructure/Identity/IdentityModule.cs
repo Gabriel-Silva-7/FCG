@@ -34,6 +34,7 @@ public static class IdentityModule
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginUserHandler>();
         services.AddScoped<GetCurrentUserHandler>();
+        services.AddScoped<ListUsersHandler>();
         services.AddScoped<AdminBootstrapService>();
         services.AddHostedService<AdminBootstrapHostedService>();
 

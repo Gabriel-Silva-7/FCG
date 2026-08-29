@@ -160,6 +160,39 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public void AdminUsersOperation_DocumentsItsPagedAdminOnlyContract()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/admin/users"]
+            .Operations[OperationType.Get];
+
+        Assert.Equal(
+            ["200", "400", "401", "403"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains(
+            SchemeName,
+            operation.Security
+                .SelectMany(requirement => requirement.Keys)
+                .Select(scheme => scheme.Reference?.Id));
+
+        var parameters = operation.Parameters.Select(parameter => parameter.Name).ToArray();
+        Assert.Contains("page", parameters);
+        Assert.Contains("pageSize", parameters);
+        Assert.Contains("search", parameters);
+
+        var responseReference = operation.Responses["200"].Content["application/json"].Schema.Reference.Id;
+        var response = document.Components.Schemas[responseReference];
+        Assert.Equal(
+            ["items", "page", "pageSize", "totalCount"],
+            response.Properties.Keys.Order(StringComparer.Ordinal));
+
+        var itemReference = response.Properties["items"].Items.Reference.Id;
+        var item = document.Components.Schemas[itemReference];
+        Assert.Contains("version", item.Properties.Keys);
+        Assert.DoesNotContain("passwordHash", item.Properties.Keys);
+    }
+
+    [Fact]
     public async Task SwaggerEndpoints_AreAvailableInDevelopment()
     {
         using var factory = fixture.Factory.WithWebHostBuilder(
