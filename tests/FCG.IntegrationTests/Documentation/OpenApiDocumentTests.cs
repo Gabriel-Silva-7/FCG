@@ -105,6 +105,33 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public void LoginOperation_DocumentsItsPublicContract()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/auth/login"]
+            .Operations[OperationType.Post];
+
+        Assert.Equal("Authenticates a user and issues an access token.", operation.Summary);
+        Assert.Empty(operation.Security);
+        Assert.Equal(
+            ["200", "400", "401", "429"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+
+        var requestReference = operation.RequestBody.Content["application/json"].Schema.Reference.Id;
+        var request = document.Components.Schemas[requestReference];
+        Assert.Contains("email", request.Properties.Keys);
+        Assert.Contains("password", request.Properties.Keys);
+        Assert.DoesNotContain("role", request.Properties.Keys);
+
+        var responseReference = operation.Responses["200"].Content["application/json"].Schema.Reference.Id;
+        var response = document.Components.Schemas[responseReference];
+        Assert.Contains("accessToken", response.Properties.Keys);
+        Assert.Contains("tokenType", response.Properties.Keys);
+        Assert.Contains("expiresIn", response.Properties.Keys);
+        Assert.DoesNotContain("refreshToken", response.Properties.Keys);
+    }
+
+    [Fact]
     public async Task SwaggerEndpoints_AreAvailableInDevelopment()
     {
         using var factory = fixture.Factory.WithWebHostBuilder(

@@ -129,6 +129,11 @@ public sealed class RegisterUserHandlerTests
             return Task.FromResult(EmailExists);
         }
 
+        public Task<User?> FindByEmailAsync(
+            Email email,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<User?>(null);
+
         public void Add(User user) => AddedUsers.Add(user);
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)
@@ -154,7 +159,7 @@ public sealed class RegisterUserHandlerTests
             return hash;
         }
 
-        public bool Verify(string passwordHash, string password) => passwordHash == hash;
+        public bool Verify(string? passwordHash, string password) => passwordHash == hash;
     }
 
     private sealed class ThrowingPasswordHasher : IPasswordHasher
@@ -162,7 +167,7 @@ public sealed class RegisterUserHandlerTests
         public string Hash(string password) =>
             throw new ArgumentException("Unexpected hashing failure.", nameof(password));
 
-        public bool Verify(string passwordHash, string password) => false;
+        public bool Verify(string? passwordHash, string password) => false;
     }
 
     private sealed class TestClock(DateTime utcNow) : IClock

@@ -1,9 +1,11 @@
 using FCG.Application.Identity;
 using FCG.Infrastructure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FCG.IntegrationTests.Identity;
 
@@ -66,6 +68,30 @@ public sealed class IdentityModuleTests
         Assert.NotEqual(password, passwordHash);
         Assert.True(passwordHasher.Verify(passwordHash, password));
         Assert.False(passwordHasher.Verify(passwordHash, "Wr0ng!Pass"));
+    }
+
+    [Fact]
+    public async Task AddIdentityModule_ConfiguresStrictJwtValidation()
+    {
+        using var host = BuildHost(JwtConfiguration(ValidSigningKey));
+        await host.StartAsync();
+        var bearerOptions = host.Services
+            .GetRequiredService<IOptionsMonitor<JwtBearerOptions>>()
+            .Get(JwtBearerDefaults.AuthenticationScheme);
+        var validation = bearerOptions.TokenValidationParameters;
+
+        Assert.False(bearerOptions.MapInboundClaims);
+        Assert.True(validation.ValidateIssuer);
+        Assert.Equal("fcg-api", validation.ValidIssuer);
+        Assert.True(validation.ValidateAudience);
+        Assert.Equal("fcg-clients", validation.ValidAudience);
+        Assert.True(validation.ValidateLifetime);
+        Assert.True(validation.RequireExpirationTime);
+        Assert.True(validation.ValidateIssuerSigningKey);
+        Assert.IsType<SymmetricSecurityKey>(validation.IssuerSigningKey);
+        Assert.Equal(TimeSpan.Zero, validation.ClockSkew);
+        Assert.Equal("sub", validation.NameClaimType);
+        Assert.Equal("role", validation.RoleClaimType);
     }
 
     private static IHost BuildHost(Dictionary<string, string?> values)

@@ -16,6 +16,13 @@ public sealed class UserRepository(FcgDbContext dbContext) : IUserRepository
             .AsNoTracking()
             .AnyAsync(user => user.Email == email, cancellationToken);
 
+    public Task<User?> FindByEmailAsync(
+        Email email,
+        CancellationToken cancellationToken) =>
+        dbContext.Users
+            .AsNoTracking()
+            .SingleOrDefaultAsync(user => user.Email == email, cancellationToken);
+
     public void Add(User user) => dbContext.Users.Add(user);
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
