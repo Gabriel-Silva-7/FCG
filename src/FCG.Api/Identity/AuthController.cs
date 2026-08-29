@@ -1,6 +1,8 @@
 using FCG.Application.Identity;
 using FCG.Api.Errors;
+using FCG.Api.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCG.Api.Identity;
@@ -16,6 +18,7 @@ public sealed class AuthController(
     /// Registers a new user account.
     /// </summary>
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitingConfiguration.RegisterPolicy)]
     [ProducesResponseType<UserResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
@@ -48,6 +51,7 @@ public sealed class AuthController(
     /// Authenticates a user and issues an access token.
     /// </summary>
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitingConfiguration.LoginPolicy)]
     [ProducesResponseType<TokenResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]

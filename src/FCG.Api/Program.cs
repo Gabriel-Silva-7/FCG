@@ -1,6 +1,7 @@
 using FCG.Api.Documentation;
 using FCG.Api.Errors;
 using FCG.Api.Logging;
+using FCG.Api.Security;
 using FCG.Application.Common;
 using FCG.Infrastructure.Catalog;
 using FCG.Infrastructure.Common;
@@ -14,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddApiProblemDetails();
 builder.Services.AddApiDocumentation();
 builder.Services.AddApiLogging();
+builder.Services.AddApiRateLimiting(builder.Configuration);
 
 builder.Services.AddSingleton<IClock, SystemClock>();
 
@@ -37,6 +39,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseApiRateLimiting();
 
 app.UseAuthentication();
 app.UseAuthorization();
