@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using FCG.Application.Identity;
 using FCG.Domain.Identity;
@@ -61,6 +62,10 @@ public static class IdentityModule
                         RoleClaimType = "role",
                         ClockSkew = TimeSpan.Zero,
                     };
+                    bearerOptions.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = RevalidateActiveUserAsync,
+                    };
                 });
         services.AddAuthorization(
             authorizationOptions =>
@@ -76,5 +81,26 @@ public static class IdentityModule
             });
 
         return services;
+    }
+
+    // O token é auto-contido: sem esta revalidação, bloquear uma conta só teria efeito quando o
+    // token expirasse. O repositório é resolvido do escopo da requisição de propósito — capturá-lo
+    // aqui seria uma captive dependency, reusando o mesmo DbContext entre requisições.
+    private static async Task RevalidateActiveUserAsync(TokenValidatedContext context)
+    {
+        if (!Guid.TryParse(context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub), out var userId))
+        {
+            context.Fail("Invalid token.");
+            return;
+        }
+
+        var userRepository = context.HttpContext.RequestServices
+            .GetRequiredService<IUserRepository>();
+        var user = await userRepository.FindByIdAsync(userId, context.HttpContext.RequestAborted);
+
+        if (user is null || !user.IsActive)
+        {
+            context.Fail("Invalid token.");
+        }
     }
 }
