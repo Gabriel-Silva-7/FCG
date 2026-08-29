@@ -25,8 +25,7 @@ public static class IdentityModule
         services.AddSingleton<IValidateOptions<AdminBootstrapOptions>, AdminBootstrapOptionsValidator>();
         services
             .AddOptions<AdminBootstrapOptions>()
-            .Bind(configuration.GetSection(AdminBootstrapOptions.SectionName))
-            .ValidateOnStart();
+            .Bind(configuration.GetSection(AdminBootstrapOptions.SectionName));
 
         services.AddSingleton<IPasswordHasher, AspNetCorePasswordHasher>();
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -34,6 +33,8 @@ public static class IdentityModule
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginUserHandler>();
         services.AddScoped<GetCurrentUserHandler>();
+        services.AddScoped<AdminBootstrapService>();
+        services.AddHostedService<AdminBootstrapHostedService>();
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

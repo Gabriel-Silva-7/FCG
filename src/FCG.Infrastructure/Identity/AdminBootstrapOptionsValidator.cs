@@ -23,6 +23,20 @@ public sealed class AdminBootstrapOptionsValidator : IValidateOptions<AdminBoots
                 $"{AdminBootstrapOptions.SectionName}:Email não é um e-mail válido.");
         }
 
+        if (hasPassword)
+        {
+            try
+            {
+                PasswordPolicy.EnsureIsValid(options.Password!);
+            }
+            catch (ArgumentException exception)
+            {
+                return ValidateOptionsResult.Fail(
+                    $"{AdminBootstrapOptions.SectionName}:Password não atende à política. " +
+                    exception.Message);
+            }
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

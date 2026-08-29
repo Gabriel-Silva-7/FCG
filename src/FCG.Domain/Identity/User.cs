@@ -43,6 +43,21 @@ public sealed class User
         string name,
         Email email,
         string passwordHash,
+        DateTime createdAtUtc) =>
+        Create(name, email, passwordHash, UserRole.User, createdAtUtc);
+
+    public static User RegisterAdministrator(
+        string name,
+        Email email,
+        string passwordHash,
+        DateTime createdAtUtc) =>
+        Create(name, email, passwordHash, UserRole.Administrator, createdAtUtc);
+
+    private static User Create(
+        string name,
+        Email email,
+        string passwordHash,
+        UserRole role,
         DateTime createdAtUtc)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -77,7 +92,7 @@ public sealed class User
             normalizedName,
             email,
             passwordHash,
-            UserRole.User,
+            role,
             true,
             createdAtUtc);
     }

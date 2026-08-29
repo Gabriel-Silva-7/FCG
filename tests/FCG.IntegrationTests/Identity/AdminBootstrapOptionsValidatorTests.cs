@@ -56,6 +56,19 @@ public sealed class AdminBootstrapOptionsValidatorTests
         Assert.Contains("Email", result.FailureMessage, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("weak")]
+    [InlineData("onlyletters")]
+    [InlineData("OnlyLetters1")]
+    public void Validate_WhenPasswordViolatesTheSharedPolicy_Fails(string password)
+    {
+        var result = Validate("admin@example.com", password);
+
+        Assert.True(result.Failed);
+        Assert.Contains("Password", result.FailureMessage, StringComparison.Ordinal);
+        Assert.DoesNotContain(password, result.FailureMessage, StringComparison.Ordinal);
+    }
+
     private static ValidateOptionsResult Validate(string? email, string? password) =>
         Validator.Validate(
             name: null,

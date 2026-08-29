@@ -29,6 +29,20 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void RegisterAdministrator_WhenDataIsValid_CreatesActiveAdministrator()
+    {
+        var user = User.RegisterAdministrator(
+            "Administrator",
+            Email.Create("admin@example.com"),
+            ValidPasswordHash,
+            ValidCreatedAtUtc);
+
+        Assert.Equal("Administrator", user.Name);
+        Assert.Equal(UserRole.Administrator, user.Role);
+        Assert.True(user.IsActive);
+    }
+
+    [Fact]
     public void Register_TrimsName()
     {
         var user = RegisterUser(name: "  Gabriel Silva  ");

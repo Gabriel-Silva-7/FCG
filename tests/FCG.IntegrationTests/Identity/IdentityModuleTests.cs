@@ -51,7 +51,7 @@ public sealed class IdentityModuleTests
     {
         var values = JwtConfiguration(ValidSigningKey);
         values["AdminBootstrap:Email"] = "admin@example.com";
-        using var host = BuildHost(values);
+        using var host = BuildHost(values, Environments.Development);
 
         await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());
     }
@@ -94,9 +94,12 @@ public sealed class IdentityModuleTests
         Assert.Equal("role", validation.RoleClaimType);
     }
 
-    private static IHost BuildHost(Dictionary<string, string?> values)
+    private static IHost BuildHost(
+        Dictionary<string, string?> values,
+        string environment = "Production")
     {
         return new HostBuilder()
+            .UseEnvironment(environment)
             .ConfigureAppConfiguration(configuration =>
                 configuration.AddInMemoryCollection(values))
             .ConfigureServices((context, services) =>
