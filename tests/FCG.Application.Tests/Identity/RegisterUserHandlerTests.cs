@@ -134,6 +134,11 @@ public sealed class RegisterUserHandlerTests
             CancellationToken cancellationToken) =>
             Task.FromResult<User?>(null);
 
+        public Task<User?> FindByIdAsync(
+            Guid id,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<User?>(null);
+
         public void Add(User user) => AddedUsers.Add(user);
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)

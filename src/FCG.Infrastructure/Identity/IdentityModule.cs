@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using FCG.Application.Identity;
+using FCG.Domain.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,7 @@ public static class IdentityModule
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginUserHandler>();
+        services.AddScoped<GetCurrentUserHandler>();
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -59,7 +61,18 @@ public static class IdentityModule
                         ClockSkew = TimeSpan.Zero,
                     };
                 });
-        services.AddAuthorization();
+        services.AddAuthorization(
+            authorizationOptions =>
+            {
+                authorizationOptions.AddPolicy(
+                    IdentityPolicies.UserOrAdmin,
+                    policy => policy.RequireRole(
+                        nameof(UserRole.User),
+                        nameof(UserRole.Administrator)));
+                authorizationOptions.AddPolicy(
+                    IdentityPolicies.AdminOnly,
+                    policy => policy.RequireRole(nameof(UserRole.Administrator)));
+            });
 
         return services;
     }

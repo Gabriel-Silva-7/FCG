@@ -110,6 +110,11 @@ public sealed class LoginUserHandlerTests
             return Task.FromResult(user);
         }
 
+        public Task<User?> FindByIdAsync(
+            Guid id,
+            CancellationToken cancellationToken) =>
+            Task.FromResult<User?>(null);
+
         public void Add(User newUser) => throw new NotSupportedException();
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) =>

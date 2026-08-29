@@ -132,6 +132,34 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public void MeOperation_DerivesIdentityFromBearerWithoutExternalParameters()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/me"]
+            .Operations[OperationType.Get];
+
+        Assert.Equal("Returns the profile of the authenticated user.", operation.Summary);
+        Assert.Empty(operation.Parameters);
+        Assert.Equal(
+            ["200", "401"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains(
+            SchemeName,
+            operation.Security
+                .SelectMany(requirement => requirement.Keys)
+                .Select(scheme => scheme.Reference?.Id));
+
+        var responseReference = operation.Responses["200"].Content["application/json"].Schema.Reference.Id;
+        var response = document.Components.Schemas[responseReference];
+        Assert.Contains("id", response.Properties.Keys);
+        Assert.Contains("name", response.Properties.Keys);
+        Assert.Contains("email", response.Properties.Keys);
+        Assert.Contains("role", response.Properties.Keys);
+        Assert.DoesNotContain("passwordHash", response.Properties.Keys);
+        Assert.DoesNotContain("isActive", response.Properties.Keys);
+    }
+
+    [Fact]
     public async Task SwaggerEndpoints_AreAvailableInDevelopment()
     {
         using var factory = fixture.Factory.WithWebHostBuilder(
