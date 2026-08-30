@@ -1,6 +1,6 @@
-using FCG.Api.Logging;
+using FCG.Application.Common;
 
-namespace FCG.Api.Tests.Logging;
+namespace FCG.Application.Tests.Common;
 
 public sealed class SensitiveDataMaskerTests
 {

@@ -3,11 +3,14 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FCG.Api.Identity;
+using FCG.Api.Security;
 using FCG.Infrastructure.Persistence;
 using FCG.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FCG.IntegrationTests.Identity;
 
@@ -69,6 +72,7 @@ public sealed class LoginEndpointTests(FcgApiFixture fixture) : DatabaseBackedTe
     {
         using var client = CreateClient();
         await RegisterAsync(client);
+        Fixture.Logs.Clear();
 
         using var wrongPasswordResponse = await client.PostAsJsonAsync(
             LoginEndpoint,
@@ -96,6 +100,38 @@ public sealed class LoginEndpointTests(FcgApiFixture fixture) : DatabaseBackedTe
         Assert.Equal(
             wrongProblem.GetProperty("title").GetString(),
             inactiveProblem.GetProperty("title").GetString());
+
+        var eventEntries = Fixture.Logs.Entries.Where(entry =>
+            entry.Category == typeof(AuthController).FullName &&
+            entry.Message.StartsWith("LoginFailed", StringComparison.Ordinal)).ToArray();
+        var requestTraceIds = Fixture.Logs.Entries.Where(entry =>
+                entry.Message.StartsWith("HttpRequest", StringComparison.Ordinal))
+            .Select(entry => entry.Field("TraceId"))
+            .ToHashSet();
+
+        Assert.Equal(3, eventEntries.Length);
+        Assert.Equal(
+            ["u***@example.com", "m***@example.com", "u***@example.com"],
+            eventEntries.Select(entry => entry.Field("MaskedEmail")));
+        Assert.All(eventEntries, entry =>
+        {
+            Assert.Equal(LogLevel.Warning, entry.Level);
+            Assert.Equal(
+                "LoginFailed {MaskedEmail} {RemoteIpAddress} {TraceId}",
+                entry.Field("{OriginalFormat}"));
+            Assert.Equal(
+                RateLimitingConfiguration.UnknownPartitionKey,
+                entry.Field("RemoteIpAddress"));
+            Assert.Contains(entry.Field("TraceId"), requestTraceIds);
+            Assert.False(entry.HasField("ActorUserId"));
+            Assert.False(entry.HasField("TargetUserId"));
+        });
+
+        var loggedText = string.Join('\n', Fixture.Logs.AllText());
+        Assert.DoesNotContain(Email, loggedText, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("missing@example.com", loggedText, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(Password, loggedText, StringComparison.Ordinal);
+        Assert.DoesNotContain("Wr0ng!Pass", loggedText, StringComparison.Ordinal);
     }
 
     [Fact]

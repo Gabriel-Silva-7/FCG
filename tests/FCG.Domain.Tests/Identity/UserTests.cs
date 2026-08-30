@@ -43,6 +43,20 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void ChangeActiveStatus_ChangesTheAccountState()
+    {
+        var user = RegisterUser();
+
+        user.ChangeActiveStatus(false);
+
+        Assert.False(user.IsActive);
+
+        user.ChangeActiveStatus(true);
+
+        Assert.True(user.IsActive);
+    }
+
+    [Fact]
     public void Register_TrimsName()
     {
         var user = RegisterUser(name: "  Gabriel Silva  ");

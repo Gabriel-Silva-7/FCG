@@ -6,8 +6,6 @@ namespace FCG.Api.Tests.Security;
 
 public sealed class RateLimitingConfigurationTests
 {
-    // Os literais são a especificação do §9.4 do refinamento. Sem isto, alterar os defaults para
-    // qualquer valor — inclusive desligar o limite na prática — mantém a suíte inteira verde.
     [Fact]
     public void Defaults_MatchTheDocumentedProductionLimit()
     {
@@ -17,8 +15,6 @@ public sealed class RateLimitingConfigurationTests
         Assert.Equal(60, options.WindowSeconds);
     }
 
-    // Sob TestServer o RemoteIpAddress é sempre nulo, então nenhum teste de integração exercita a
-    // partição por IP: trocá-la por uma constante global passaria despercebido.
     [Fact]
     public void PartitionKey_SeparatesDistinctRemoteAddresses()
     {

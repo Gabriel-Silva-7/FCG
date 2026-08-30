@@ -41,6 +41,7 @@ public static class SwaggerConfiguration
             });
 
             options.OperationFilter<BearerSecurityRequirementOperationFilter>();
+            options.SchemaFilter<CreateGameRequestSchemaFilter>();
         });
 
         return services;

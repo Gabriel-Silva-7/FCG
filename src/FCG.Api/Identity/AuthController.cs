@@ -1,6 +1,8 @@
-using FCG.Application.Identity;
+using FCG.Api.Diagnostics;
 using FCG.Api.Errors;
 using FCG.Api.Security;
+using FCG.Application.Common;
+using FCG.Application.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +14,8 @@ namespace FCG.Api.Identity;
 [Route("api/v1/auth")]
 public sealed class AuthController(
     RegisterUserHandler registerUserHandler,
-    LoginUserHandler loginUserHandler) : ControllerBase
+    LoginUserHandler loginUserHandler,
+    ILogger<AuthController> logger) : ControllerBase
 {
     /// <summary>
     /// Registers a new user account.
@@ -44,6 +47,12 @@ public sealed class AuthController(
             user.Email,
             user.Role.ToString());
 
+        logger.LogInformation(
+            "UserRegistered {TargetUserId} {MaskedEmail} {TraceId}",
+            user.Id,
+            SensitiveDataMasker.MaskEmail(user.Email),
+            TraceIdentity.Resolve(HttpContext));
+
         return Created("/api/v1/me", response);
     }
 
@@ -66,6 +75,12 @@ public sealed class AuthController(
 
         if (result.Status is LoginUserStatus.InvalidCredentials)
         {
+            logger.LogWarning(
+                "LoginFailed {MaskedEmail} {RemoteIpAddress} {TraceId}",
+                SensitiveDataMasker.MaskEmail(request.Email),
+                RateLimitingConfiguration.ResolvePartitionKey(HttpContext),
+                TraceIdentity.Resolve(HttpContext));
+
             return Unauthorized(
                 ApiErrors.InvalidCredentials.ToProblemDetails(HttpContext.Request.Path));
         }

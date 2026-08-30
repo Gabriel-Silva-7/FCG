@@ -53,6 +53,8 @@ public sealed class User
         DateTime createdAtUtc) =>
         Create(name, email, passwordHash, UserRole.Administrator, createdAtUtc);
 
+    public void ChangeActiveStatus(bool isActive) => IsActive = isActive;
+
     private static User Create(
         string name,
         Email email,

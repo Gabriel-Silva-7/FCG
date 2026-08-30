@@ -17,6 +17,12 @@ public interface IUserRepository
         int pageSize,
         CancellationToken cancellationToken);
 
+    Task<AdminUserSummary?> ChangeStatusAsync(
+        Guid userId,
+        bool isActive,
+        uint expectedVersion,
+        CancellationToken cancellationToken);
+
     void Add(User user);
 
     Task SaveChangesAsync(CancellationToken cancellationToken);

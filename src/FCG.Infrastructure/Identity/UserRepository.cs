@@ -63,6 +63,47 @@ public sealed class UserRepository(FcgDbContext dbContext) : IUserRepository
         return new PagedResult<AdminUserSummary>(items, page, pageSize, totalCount);
     }
 
+    public async Task<AdminUserSummary?> ChangeStatusAsync(
+        Guid userId,
+        bool isActive,
+        uint expectedVersion,
+        CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users
+            .SingleOrDefaultAsync(current => current.Id == userId, cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        var entry = dbContext.Entry(user);
+        entry.Property<uint>("xmin").OriginalValue = expectedVersion;
+        user.ChangeActiveStatus(isActive);
+
+        entry.Property(current => current.IsActive).IsModified = true;
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException exception)
+        {
+            entry.State = EntityState.Detached;
+            throw new UserStatusConcurrencyException(exception);
+        }
+
+        var version = entry.Property<uint>("xmin").CurrentValue.ToString();
+        return new AdminUserSummary(
+            user.Id,
+            user.Name,
+            user.Email.Value,
+            user.Role,
+            user.IsActive,
+            user.CreatedAtUtc,
+            version);
+    }
+
     private IQueryable<AdminUserRow> SearchRows(string term) =>
         // SqlQuery mantém este read model fora do modelo persistido e permite buscar o texto da
         // coluna Email sem fazer o value converter tentar transformar o trecho em um Email válido.

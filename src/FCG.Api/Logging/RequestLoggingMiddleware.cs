@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FCG.Api.Diagnostics;
 using FCG.Application.Common;
@@ -28,7 +29,7 @@ internal sealed class RequestLoggingMiddleware(
             ResolveRoute(context),
             context.Response.StatusCode,
             Math.Round(Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds, 2),
-            context.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            context.User.FindFirstValue(JwtRegisteredClaimNames.Sub));
     }
 
     private static string ResolveRoute(HttpContext context)

@@ -1,4 +1,4 @@
-namespace FCG.Api.Logging;
+namespace FCG.Application.Common;
 
 public static class SensitiveDataMasker
 {

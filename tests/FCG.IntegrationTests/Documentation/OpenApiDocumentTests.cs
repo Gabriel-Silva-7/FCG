@@ -1,4 +1,5 @@
 using System.Net;
+using FCG.Application.Catalog;
 using FCG.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -190,6 +191,136 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
         var item = document.Components.Schemas[itemReference];
         Assert.Contains("version", item.Properties.Keys);
         Assert.DoesNotContain("passwordHash", item.Properties.Keys);
+    }
+
+    [Fact]
+    public void ChangeUserStatusOperation_DocumentsConcurrencyAndAuthorizationContracts()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/admin/users/{id}/status"]
+            .Operations[OperationType.Patch];
+
+        Assert.Equal(
+            ["200", "400", "401", "403", "404", "409"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains(
+            SchemeName,
+            operation.Security
+                .SelectMany(requirement => requirement.Keys)
+                .Select(scheme => scheme.Reference?.Id));
+
+        var id = Assert.Single(operation.Parameters);
+        Assert.Equal("id", id.Name);
+        Assert.True(id.Required);
+
+        var requestReference = operation.RequestBody.Content["application/json"].Schema.Reference.Id;
+        var request = document.Components.Schemas[requestReference];
+        Assert.Contains("isActive", request.Required);
+        Assert.Contains("version", request.Required);
+
+        var responseReference = operation.Responses["200"].Content["application/json"].Schema.Reference.Id;
+        var response = document.Components.Schemas[responseReference];
+        Assert.Contains("isActive", response.Properties.Keys);
+        Assert.Contains("version", response.Properties.Keys);
+        Assert.DoesNotContain("passwordHash", response.Properties.Keys);
+    }
+
+    [Fact]
+    public void CreateGameOperation_DocumentsItsAdministrativeContract()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/games"]
+            .Operations[OperationType.Post];
+
+        Assert.Equal("Creates a game as an administrator.", operation.Summary);
+        Assert.Equal(
+            ["201", "400", "401", "403"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains(
+            SchemeName,
+            operation.Security
+                .SelectMany(requirement => requirement.Keys)
+                .Select(scheme => scheme.Reference?.Id));
+
+        var requestReference = operation.RequestBody.Content["application/json"].Schema.Reference.Id;
+        var request = document.Components.Schemas[requestReference];
+        Assert.Contains("title", request.Required);
+        Assert.Contains("basePrice", request.Required);
+        Assert.Contains("description", request.Properties.Keys);
+        Assert.DoesNotContain("createdByUserId", request.Properties.Keys);
+        Assert.DoesNotContain("isActive", request.Properties.Keys);
+        Assert.Equal(0m, request.Properties["basePrice"].Minimum);
+        Assert.Equal(
+            GamePriceLimits.MaximumSupportedBasePrice,
+            request.Properties["basePrice"].Maximum);
+
+        var responseReference = operation.Responses["201"].Content["application/json"].Schema.Reference.Id;
+        var response = document.Components.Schemas[responseReference];
+        Assert.Equal(
+            [
+                "basePrice",
+                "currentPrice",
+                "description",
+                "discountPercentage",
+                "id",
+                "isActive",
+                "title",
+            ],
+            response.Properties.Keys.Order(StringComparer.Ordinal));
+        Assert.DoesNotContain("createdByUserId", response.Properties.Keys);
+    }
+
+    [Fact]
+    public void PublicCatalogOperations_DocumentPaginationAndDetailContracts()
+    {
+        var document = GetDocument();
+        var list = document.Paths["/api/v1/games"]
+            .Operations[OperationType.Get];
+        var detail = document.Paths["/api/v1/games/{id}"]
+            .Operations[OperationType.Get];
+
+        Assert.Equal("Lists the active game catalog.", list.Summary);
+        Assert.Empty(list.Security);
+        Assert.Equal(
+            ["200", "400"],
+            list.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(
+            ["page", "pageSize", "search", "sortBy"],
+            list.Parameters.Select(parameter => parameter.Name).Order(StringComparer.Ordinal));
+        Assert.Equal(
+            GameSortFields.Pattern,
+            list.Parameters.Single(parameter => parameter.Name == "sortBy").Schema.Pattern);
+
+        var pageReference = list.Responses["200"].Content["application/json"].Schema.Reference.Id;
+        var page = document.Components.Schemas[pageReference];
+        Assert.Equal(
+            ["items", "page", "pageSize", "totalCount"],
+            page.Properties.Keys.Order(StringComparer.Ordinal));
+
+        var itemReference = page.Properties["items"].Items.Reference.Id;
+        var item = document.Components.Schemas[itemReference];
+        Assert.Equal(
+            [
+                "basePrice",
+                "currentPrice",
+                "description",
+                "discountPercentage",
+                "id",
+                "isActive",
+                "title",
+            ],
+            item.Properties.Keys.Order(StringComparer.Ordinal));
+
+        Assert.Equal("Returns an active game from the public catalog.", detail.Summary);
+        Assert.Contains("cannot receive new promotions", detail.Description, StringComparison.Ordinal);
+        Assert.Contains("library entries are preserved", detail.Description, StringComparison.Ordinal);
+        Assert.Empty(detail.Security);
+        Assert.Equal(
+            ["200", "404"],
+            detail.Responses.Keys.Order(StringComparer.Ordinal));
+        var id = Assert.Single(detail.Parameters);
+        Assert.Equal("id", id.Name);
+        Assert.True(id.Required);
     }
 
     [Fact]

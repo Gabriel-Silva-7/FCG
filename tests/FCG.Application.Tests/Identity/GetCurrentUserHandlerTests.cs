@@ -66,6 +66,13 @@ public sealed class GetCurrentUserHandlerTests
             CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
+        public Task<AdminUserSummary?> ChangeStatusAsync(
+            Guid userId,
+            bool isActive,
+            uint expectedVersion,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public void Add(User newUser) => throw new NotSupportedException();
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) =>

@@ -146,6 +146,13 @@ public sealed class RegisterUserHandlerTests
             CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
+        public Task<AdminUserSummary?> ChangeStatusAsync(
+            Guid userId,
+            bool isActive,
+            uint expectedVersion,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public void Add(User user) => AddedUsers.Add(user);
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)

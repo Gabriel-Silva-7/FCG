@@ -22,8 +22,6 @@ public sealed class ActiveUserRevalidationTests(FcgApiFixture fixture) : Databas
     private const string Email = "blocked@example.com";
     private const string Password = "Str0ng!Pass";
 
-    // O fluxo que o card pede como evidência: bloqueio -> mesmo token -> 401. A primeira chamada,
-    // antes de desativar, é a evidência do critério "conta ativa continua funcionando".
     [Fact]
     public async Task DeactivatedAccount_LosesAccessImmediatelyWithTheTokenItAlreadyHolds()
     {
@@ -67,8 +65,6 @@ public sealed class ActiveUserRevalidationTests(FcgApiFixture fixture) : Databas
         Assert.Equal("unauthenticated", problem.GetProperty("code").GetString());
     }
 
-    // Um token assinado corretamente, mas sem um `sub` utilizável, não pode seguir autenticado:
-    // sem `sub` não há quem revalidar, e tratar isso como sucesso derrubaria a garantia inteira.
     [Theory]
     [InlineData(null)]
     [InlineData("")]

@@ -1,3 +1,4 @@
+using FCG.Application.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -34,12 +35,21 @@ public sealed class AdminBootstrapHostedService(
 
         try
         {
-            var result = await bootstrap.ExecuteAsync(
+            var outcome = await bootstrap.ExecuteAsync(
                 bootstrapOptions.Email!,
                 bootstrapOptions.Password!,
                 cancellationToken);
 
-            logger.LogInformation("AdminBootstrapCompleted {Result}", result);
+            logger.LogInformation("AdminBootstrapCompleted {Result}", outcome.Result);
+
+            if (outcome.Result is AdminBootstrapResult.Created)
+            {
+                logger.LogInformation(
+                    "UserRegistered {TargetUserId} {MaskedEmail} {TraceId}",
+                    outcome.UserId,
+                    SensitiveDataMasker.MaskEmail(outcome.Email),
+                    (string?)null);
+            }
         }
         catch (AdminBootstrapConflictException)
         {

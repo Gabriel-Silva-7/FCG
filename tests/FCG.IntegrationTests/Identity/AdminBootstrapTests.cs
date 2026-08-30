@@ -85,6 +85,17 @@ public sealed class AdminBootstrapTests(FcgApiFixture fixture) : DatabaseBackedT
         Assert.Contains(
             logs.Entries,
             entry => Equals(entry.Field("Result")?.ToString(), nameof(AdminBootstrapResult.Created)));
+
+        var registeredEvent = Assert.Single(logs.Entries.Where(entry =>
+            entry.Category == typeof(AdminBootstrapHostedService).FullName &&
+            entry.Message.StartsWith("UserRegistered", StringComparison.Ordinal)));
+
+        Assert.Equal(
+            "UserRegistered {TargetUserId} {MaskedEmail} {TraceId}",
+            registeredEvent.Field("{OriginalFormat}"));
+        Assert.Equal(administrator.Id, registeredEvent.Field("TargetUserId"));
+        Assert.Equal("a***@example.com", registeredEvent.Field("MaskedEmail"));
+        Assert.Null(registeredEvent.Field("TraceId"));
         AssertLogsDoNotContainSecrets(logs, administrator.PasswordHash);
     }
 
@@ -119,6 +130,9 @@ public sealed class AdminBootstrapTests(FcgApiFixture fixture) : DatabaseBackedT
             entry => Equals(
                 entry.Field("Result")?.ToString(),
                 nameof(AdminBootstrapResult.AlreadyConfigured)));
+        Assert.DoesNotContain(
+            secondLogs.Entries,
+            entry => entry.Message.StartsWith("UserRegistered", StringComparison.Ordinal));
     }
 
     [Fact]

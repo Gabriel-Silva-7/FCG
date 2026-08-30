@@ -11,7 +11,7 @@ public sealed class AdminBootstrapService(
 {
     private const string AdministratorName = "Administrator";
 
-    public async Task<AdminBootstrapResult> ExecuteAsync(
+    public async Task<AdminBootstrapOutcome> ExecuteAsync(
         string emailValue,
         string password,
         CancellationToken cancellationToken)
@@ -24,7 +24,10 @@ public sealed class AdminBootstrapService(
         {
             if (existingUser.Role is UserRole.Administrator && existingUser.IsActive)
             {
-                return AdminBootstrapResult.AlreadyConfigured;
+                return new AdminBootstrapOutcome(
+                    AdminBootstrapResult.AlreadyConfigured,
+                    existingUser.Id,
+                    existingUser.Email.Value);
             }
 
             throw new AdminBootstrapConflictException();
@@ -40,9 +43,17 @@ public sealed class AdminBootstrapService(
         userRepository.Add(administrator);
         await userRepository.SaveChangesAsync(cancellationToken);
 
-        return AdminBootstrapResult.Created;
+        return new AdminBootstrapOutcome(
+            AdminBootstrapResult.Created,
+            administrator.Id,
+            administrator.Email.Value);
     }
 }
+
+public sealed record AdminBootstrapOutcome(
+    AdminBootstrapResult Result,
+    Guid UserId,
+    string Email);
 
 public enum AdminBootstrapResult
 {

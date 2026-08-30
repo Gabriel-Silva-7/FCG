@@ -35,6 +35,7 @@ public static class IdentityModule
         services.AddScoped<LoginUserHandler>();
         services.AddScoped<GetCurrentUserHandler>();
         services.AddScoped<ListUsersHandler>();
+        services.AddScoped<ChangeUserStatusHandler>();
         services.AddScoped<AdminBootstrapService>();
         services.AddHostedService<AdminBootstrapHostedService>();
 
@@ -84,9 +85,6 @@ public static class IdentityModule
         return services;
     }
 
-    // O token é auto-contido: sem esta revalidação, bloquear uma conta só teria efeito quando o
-    // token expirasse. O repositório é resolvido do escopo da requisição de propósito — capturá-lo
-    // aqui seria uma captive dependency, reusando o mesmo DbContext entre requisições.
     private static async Task RevalidateActiveUserAsync(TokenValidatedContext context)
     {
         if (!Guid.TryParse(context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub), out var userId))

@@ -102,12 +102,9 @@ public sealed class AdminUsersEndpointTests(FcgApiFixture fixture) : DatabaseBac
         var byNameBody = await byName.Content.ReadFromJsonAsync<JsonElement>();
         var byEmailBody = await byEmail.Content.ReadFromJsonAsync<JsonElement>();
 
-        // O total reflete o filtro, não o tamanho da página — senão a paginação mentiria sobre
-        // quantos resultados existem.
         Assert.Equal(2, byNameBody.GetProperty("totalCount").GetInt32());
         Assert.Equal(2, byNameBody.GetProperty("items").GetArrayLength());
 
-        // A busca por e-mail também aceita trechos e ignora diferenças entre maiúsculas e minúsculas.
         var found = Assert.Single(byEmailBody.GetProperty("items").EnumerateArray().ToArray());
         Assert.Equal("sem.relacao@example.com", found.GetProperty("email").GetString());
     }

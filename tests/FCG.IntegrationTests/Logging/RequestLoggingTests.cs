@@ -36,6 +36,38 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public async Task AuthenticatedRequest_LogsTheTokenSubjectAsUserId()
+    {
+        const string password = "Str0ng!Pass";
+        var email = $"request-log-{Guid.NewGuid():N}@example.com";
+        using var client = fixture.Factory.CreateClient();
+
+        using var registrationResponse = await client.PostAsJsonAsync(
+            "/api/v1/auth/register",
+            new { name = "Request Log User", email, password });
+        var registered = await registrationResponse.Content.ReadFromJsonAsync<JsonElement>();
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/v1/auth/login",
+            new { email, password });
+        var token = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.Created, registrationResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            token.GetProperty("accessToken").GetString());
+        fixture.Logs.Clear();
+
+        using var response = await client.GetAsync("/api/v1/me");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var entry = Assert.Single(RequestEntries());
+        Assert.Equal(
+            registered.GetProperty("id").GetGuid().ToString(),
+            entry.Field("UserId"));
+    }
+
+    [Fact]
     public async Task NothingSensitiveInTheRequestReachesAnyLogEntry()
     {
         const string passwordInBody = "SENTINELA_SENHA_NO_CORPO_1!";

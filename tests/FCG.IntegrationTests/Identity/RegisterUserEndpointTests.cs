@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FCG.Api.Identity;
 using FCG.Application.Identity;
 using FCG.Domain.Identity;
 using FCG.Infrastructure.Persistence;
@@ -8,6 +9,7 @@ using FCG.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FCG.IntegrationTests.Identity;
 
@@ -59,6 +61,21 @@ public sealed class RegisterUserEndpointTests(FcgApiFixture fixture) : DatabaseB
         Assert.DoesNotContain(password, loggedText, StringComparison.Ordinal);
         Assert.DoesNotContain(user.PasswordHash, loggedText, StringComparison.Ordinal);
         Assert.DoesNotContain(email, loggedText, StringComparison.OrdinalIgnoreCase);
+
+        var eventEntry = Assert.Single(Fixture.Logs.Entries.Where(entry =>
+            entry.Category == typeof(AuthController).FullName &&
+            entry.Message.StartsWith("UserRegistered", StringComparison.Ordinal)));
+        var requestEntry = Assert.Single(Fixture.Logs.Entries.Where(entry =>
+            entry.Message.StartsWith("HttpRequest", StringComparison.Ordinal)));
+
+        Assert.Equal(LogLevel.Information, eventEntry.Level);
+        Assert.Equal(
+            "UserRegistered {TargetUserId} {MaskedEmail} {TraceId}",
+            eventEntry.Field("{OriginalFormat}"));
+        Assert.Equal(user.Id, eventEntry.Field("TargetUserId"));
+        Assert.Equal("n***@example.com", eventEntry.Field("MaskedEmail"));
+        Assert.Equal(requestEntry.Field("TraceId"), eventEntry.Field("TraceId"));
+        Assert.False(eventEntry.HasField("ActorUserId"));
     }
 
     [Fact]
