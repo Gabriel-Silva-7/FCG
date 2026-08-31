@@ -271,6 +271,49 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public void CreatePromotionOperation_DocumentsItsAdministrativeContract()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/games/{gameId}/promotions"]
+            .Operations[OperationType.Post];
+
+        Assert.Equal(
+            "Creates a promotion for an active game as an administrator.",
+            operation.Summary);
+        Assert.Equal(
+            ["201", "400", "401", "403", "404"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains(
+            SchemeName,
+            operation.Security
+                .SelectMany(requirement => requirement.Keys)
+                .Select(scheme => scheme.Reference?.Id));
+
+        var gameId = Assert.Single(operation.Parameters);
+        Assert.Equal("gameId", gameId.Name);
+        Assert.True(gameId.Required);
+
+        var requestReference = operation.RequestBody.Content["application/json"].Schema.Reference.Id;
+        var request = document.Components.Schemas[requestReference];
+        Assert.Equal(
+            ["discountPercentage", "endsAt", "startsAt"],
+            request.Required.Order(StringComparer.Ordinal));
+
+        var responseReference = operation.Responses["201"].Content["application/json"].Schema.Reference.Id;
+        var response = document.Components.Schemas[responseReference];
+        Assert.Equal(
+            [
+                "discountPercentage",
+                "endsAt",
+                "gameId",
+                "id",
+                "isCurrentlyActive",
+                "startsAt",
+            ],
+            response.Properties.Keys.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
     public void PublicCatalogOperations_DocumentPaginationAndDetailContracts()
     {
         var document = GetDocument();

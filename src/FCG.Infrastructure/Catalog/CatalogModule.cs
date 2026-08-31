@@ -8,7 +8,9 @@ public static class CatalogModule
     public static IServiceCollection AddCatalogModule(this IServiceCollection services)
     {
         services.AddScoped<IGameRepository, GameRepository>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<CreateGameHandler>();
+        services.AddScoped<CreatePromotionHandler>();
         services.AddScoped<ListGamesHandler>();
         services.AddScoped<GetGameHandler>();
 
