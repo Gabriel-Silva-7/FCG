@@ -18,6 +18,7 @@ public sealed record CreateGameRequest
         typeof(decimal),
         GamePriceLimits.MinimumBasePriceText,
         GamePriceLimits.MaximumSupportedBasePriceText,
-        ParseLimitsInInvariantCulture = true)]
+        ParseLimitsInInvariantCulture = true,
+        ErrorMessage = "Base price must be between 0 and 9999999999999999.99.")]
     public decimal? BasePrice { get; init; }
 }

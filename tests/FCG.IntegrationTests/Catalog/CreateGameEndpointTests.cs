@@ -169,6 +169,28 @@ public sealed class CreateGameEndpointTests(FcgApiFixture fixture) : DatabaseBac
         Assert.False(await AnyGameAsync());
     }
 
+    [Fact]
+    public async Task BasePriceRangeError_UsesAnInvariantPublicMessage()
+    {
+        using var client = CreateClient();
+        await CreateAdministratorAsync();
+        await AuthenticateAsync(client, AdminEmail);
+
+        using var response = await client.PostAsJsonAsync(
+            Endpoint,
+            new { title = "Celeste", basePrice = -1m });
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var message = problem
+            .GetProperty("errors")
+            .GetProperty("BasePrice")[0]
+            .GetString();
+        Assert.Equal(
+            "Base price must be between 0 and 9999999999999999.99.",
+            message);
+    }
+
     private async Task<Guid> CreateAdministratorAsync()
     {
         await using var scope = Fixture.Factory.Services.CreateAsyncScope();
