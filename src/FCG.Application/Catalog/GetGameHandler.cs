@@ -8,6 +8,6 @@ public sealed class GetGameHandler(IGameRepository gameRepository)
     {
         var game = await gameRepository.FindActiveByIdAsync(gameId, cancellationToken);
 
-        return game is null ? null : CatalogGameMapper.WithoutPromotion(game);
+        return game is null ? null : CatalogGameMapper.WithPricing(game);
     }
 }

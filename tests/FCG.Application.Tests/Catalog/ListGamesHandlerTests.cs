@@ -11,7 +11,8 @@ public sealed class ListGamesHandlerTests
         "Celeste",
         "Precision platformer",
         59.90m,
-        true);
+        true,
+        25m);
 
     [Theory]
     [InlineData(GameSortFields.Title, GameSortField.Title)]
@@ -42,8 +43,8 @@ public sealed class ListGamesHandlerTests
 
         var game = Assert.Single(result.Items);
         Assert.Equal(SampleGame.Id, game.Id);
-        Assert.Equal(SampleGame.BasePrice, game.CurrentPrice);
-        Assert.Equal(0m, game.DiscountPercentage);
+        Assert.Equal(44.93m, game.CurrentPrice);
+        Assert.Equal(25m, game.DiscountPercentage);
     }
 
     public static TheoryData<ListGamesQuery, string> InvalidQueries =>

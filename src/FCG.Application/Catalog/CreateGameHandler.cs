@@ -48,13 +48,14 @@ public sealed class CreateGameHandler(
         gameRepository.Add(game);
         await gameRepository.SaveChangesAsync(cancellationToken);
 
-        return CatalogGameMapper.WithoutPromotion(
+        return CatalogGameMapper.WithPricing(
             new GameReadModel(
                 game.Id,
                 game.Title,
                 game.Description,
                 game.BasePrice,
-                game.IsActive));
+                game.IsActive,
+                0m));
     }
 
     private static bool TryGetPublicInputName(ArgumentException exception, out string inputName)

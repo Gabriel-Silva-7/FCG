@@ -18,7 +18,8 @@ public sealed class GetGameHandlerTests
                 "Celeste",
                 "Precision platformer",
                 59.90m,
-                true),
+                true,
+                20m),
         };
         var handler = new GetGameHandler(repository);
         using var cancellationSource = new CancellationTokenSource();
@@ -29,8 +30,8 @@ public sealed class GetGameHandlerTests
         Assert.Equal(GameId, repository.GameId);
         Assert.Equal(cancellationSource.Token, repository.CancellationToken);
         Assert.Equal(59.90m, result.BasePrice);
-        Assert.Equal(59.90m, result.CurrentPrice);
-        Assert.Equal(0m, result.DiscountPercentage);
+        Assert.Equal(47.92m, result.CurrentPrice);
+        Assert.Equal(20m, result.DiscountPercentage);
         Assert.True(result.IsActive);
     }
 

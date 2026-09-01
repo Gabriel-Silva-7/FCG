@@ -1,3 +1,5 @@
+using FCG.Domain.Catalog;
+
 namespace FCG.Application.Catalog;
 
 public enum GameSortField
@@ -40,7 +42,8 @@ public sealed record GameReadModel(
     string Title,
     string? Description,
     decimal BasePrice,
-    bool IsActive);
+    bool IsActive,
+    decimal DiscountPercentage);
 
 public sealed record CatalogGameSummary(
     Guid Id,
@@ -53,13 +56,17 @@ public sealed record CatalogGameSummary(
 
 internal static class CatalogGameMapper
 {
-    public static CatalogGameSummary WithoutPromotion(GameReadModel game) =>
-        new(
+    public static CatalogGameSummary WithPricing(GameReadModel game)
+    {
+        var price = PricingService.Calculate(game.BasePrice, game.DiscountPercentage);
+
+        return new CatalogGameSummary(
             game.Id,
             game.Title,
             game.Description,
             game.BasePrice,
-            game.BasePrice,
-            0m,
+            price.CurrentPrice,
+            price.DiscountPercentage,
             game.IsActive);
+    }
 }

@@ -36,7 +36,7 @@ public sealed class ListGamesHandler(IGameRepository gameRepository)
             cancellationToken);
 
         return new PagedResult<CatalogGameSummary>(
-            result.Items.Select(CatalogGameMapper.WithoutPromotion).ToArray(),
+            result.Items.Select(CatalogGameMapper.WithPricing).ToArray(),
             result.Page,
             result.PageSize,
             result.TotalCount);
