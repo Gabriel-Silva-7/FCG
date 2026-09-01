@@ -1,29 +1,28 @@
+using FCG.Domain.Identity;
+
 namespace FCG.Application.Common;
 
 public static class SensitiveDataMasker
 {
     public const string FullyMasked = "***";
 
+    // O e-mail chega cru do cliente em LoginFailed: a rota aceita qualquer string para não
+    // permitir enumeração de contas. Ecoar o que vem depois do '@' deixaria um anônimo escrever
+    // no log — inclusive quebras de linha, forjando uma entrada inteira. Só um e-mail que o
+    // domínio reconhece é mascarado; qualquer outra coisa vira ***.
     public static string MaskEmail(string? email)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (!Email.TryCreate(email, out var parsed))
         {
             return FullyMasked;
         }
 
-        var separatorIndex = email.IndexOf('@', StringComparison.Ordinal);
-
-        if (separatorIndex <= 0 ||
-            separatorIndex != email.LastIndexOf('@') ||
-            separatorIndex == email.Length - 1)
-        {
-            return FullyMasked;
-        }
-
-        var domain = email[separatorIndex..];
+        var value = parsed.Value;
+        var separatorIndex = value.IndexOf('@', StringComparison.Ordinal);
+        var domain = value[separatorIndex..];
 
         return separatorIndex == 1
             ? FullyMasked + domain
-            : email[0] + FullyMasked + domain;
+            : value[0] + FullyMasked + domain;
     }
 }

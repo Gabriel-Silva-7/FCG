@@ -27,6 +27,11 @@ public sealed class SensitiveDataMaskerTests
     [InlineData("@example.com")]
     [InlineData("gabriel@")]
     [InlineData("a@b@c.com")]
+    // Injeção de log: o e-mail chega cru do cliente, e uma quebra de linha ecoada forjaria uma
+    // entrada inteira no log. Nada que o domínio não reconheça como e-mail pode ser devolvido.
+    [InlineData("a@example.com\n2026-09-01 warn: UserBlocked 111 222 forjado")]
+    [InlineData("a@example.com\rUserRegistered")]
+    [InlineData("a@example.com com espaço")]
     public void MaskEmail_NeverEchoesInputThatIsNotAnEmail(string? value)
     {
         Assert.Equal("***", SensitiveDataMasker.MaskEmail(value));

@@ -8,16 +8,15 @@ using FCG.IntegrationTests.Infrastructure;
 
 namespace FCG.IntegrationTests.Logging;
 
-[Collection(FcgApiCollection.Name)]
-public sealed class RequestLoggingTests(FcgApiFixture fixture)
+public sealed class RequestLoggingTests(FcgApiFixture fixture) : DatabaseBackedTest(fixture)
 {
     private const string RequestEventName = "HttpRequest";
 
     [Fact]
     public async Task Request_ProducesOneEntryWithTheStructuredFieldsRequiredByTheProject()
     {
-        fixture.Logs.Clear();
-        using var client = fixture.Factory.CreateClient();
+        Fixture.Logs.Clear();
+        using var client = Fixture.Factory.CreateClient();
 
         using var response = await client.GetAsync("/_test/logging/plain");
 
@@ -40,7 +39,7 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
     {
         const string password = "Str0ng!Pass";
         var email = $"request-log-{Guid.NewGuid():N}@example.com";
-        using var client = fixture.Factory.CreateClient();
+        using var client = Fixture.Factory.CreateClient();
 
         using var registrationResponse = await client.PostAsJsonAsync(
             "/api/v1/auth/register",
@@ -56,7 +55,7 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
             token.GetProperty("accessToken").GetString());
-        fixture.Logs.Clear();
+        Fixture.Logs.Clear();
 
         using var response = await client.GetAsync("/api/v1/me");
 
@@ -75,8 +74,8 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
         const string jwt = "eyJhbGciOiJIUzI1NiJ9.SENTINELA_JWT.assinatura";
         const string passwordInQuery = "SENTINELA_SENHA_NA_QUERY";
 
-        fixture.Logs.Clear();
-        using var client = fixture.Factory.CreateClient();
+        Fixture.Logs.Clear();
+        using var client = Fixture.Factory.CreateClient();
 
         using var request = new HttpRequestMessage(
             HttpMethod.Post,
@@ -93,7 +92,7 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
 
         foreach (var sensitiveValue in new[] { passwordInBody, emailInBody, jwt, passwordInQuery })
         {
-            var leak = fixture.Logs.AllText().FirstOrDefault(
+            var leak = Fixture.Logs.AllText().FirstOrDefault(
                 text => text.Contains(sensitiveValue, StringComparison.OrdinalIgnoreCase));
 
             Assert.True(leak is null, $"'{sensitiveValue}' vazou para o log em: {leak}");
@@ -109,23 +108,23 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
     {
         const string sensitiveValue = "SENTINELA_SEGREDO_NA_ROTA";
 
-        fixture.Logs.Clear();
-        using var client = fixture.Factory.CreateClient();
+        Fixture.Logs.Clear();
+        using var client = Fixture.Factory.CreateClient();
         using var response = await client.GetAsync(requestUri);
 
         var entry = Assert.Single(RequestEntries());
 
         Assert.Equal(expectedRoute, entry.Field("Route"));
         Assert.DoesNotContain(
-            fixture.Logs.AllText(),
+            Fixture.Logs.AllText(),
             text => text.Contains(sensitiveValue, StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
     public async Task RequestLog_CarriesTheSameTraceIdTheErrorBodyReturnsToTheClient()
     {
-        fixture.Logs.Clear();
-        using var client = fixture.Factory.CreateClient();
+        Fixture.Logs.Clear();
+        using var client = Fixture.Factory.CreateClient();
 
         using var response = await client.GetAsync("/_test/errors/status/404");
 
@@ -144,16 +143,16 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
     [Fact]
     public async Task UnhandledException_IsLoggedWithoutItsMessageOrStackTrace()
     {
-        fixture.Logs.Clear();
-        using var client = fixture.Factory.CreateClient();
+        Fixture.Logs.Clear();
+        using var client = Fixture.Factory.CreateClient();
         using var response = await client.GetAsync("/_test/errors/throw");
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         Assert.DoesNotContain(
-            fixture.Logs.AllText(),
+            Fixture.Logs.AllText(),
             text => text.Contains(ErrorTestController.ExceptionMessage, StringComparison.Ordinal));
 
-        var entry = Assert.Single(fixture.Logs.Entries.Where(log =>
+        var entry = Assert.Single(Fixture.Logs.Entries.Where(log =>
             log.Category == typeof(GlobalExceptionHandler).FullName));
 
         Assert.Equal(typeof(InvalidOperationException).FullName, entry.Field("ExceptionType"));
@@ -162,6 +161,6 @@ public sealed class RequestLoggingTests(FcgApiFixture fixture)
     }
 
     private IEnumerable<CapturedLogEntry> RequestEntries() =>
-        fixture.Logs.Entries.Where(entry =>
+        Fixture.Logs.Entries.Where(entry =>
             entry.Message.StartsWith(RequestEventName, StringComparison.Ordinal));
 }

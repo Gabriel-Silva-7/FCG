@@ -34,10 +34,15 @@ public sealed class AuthController(
             new RegisterUserCommand(request.Name, request.Email, request.Password),
             cancellationToken);
 
-        if (result.Status is RegisterUserStatus.EmailAlreadyRegistered)
+        if (result.Status is not RegisterUserStatus.Created)
         {
-            return Conflict(
-                ApiErrors.EmailAlreadyRegistered.ToProblemDetails(HttpContext.Request.Path));
+            return result.Status switch
+            {
+                RegisterUserStatus.EmailAlreadyRegistered => Conflict(
+                    ApiErrors.EmailAlreadyRegistered.ToProblemDetails(HttpContext.Request.Path)),
+                _ => throw new InvalidOperationException(
+                    $"Unexpected registration result: {result.Status}."),
+            };
         }
 
         var user = result.User!;
