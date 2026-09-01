@@ -118,6 +118,13 @@ São **507 testes** divididos entre Domain, Application, Api e Integration. A su
 sobe um PostgreSQL 16 descartável com Testcontainers e aplica a cadeia completa de migrations;
 portanto, o Docker precisa estar em execução. Nenhum teste relacional usa EF InMemory.
 
+TDD foi aplicado ao value object `Email`. O histórico preserva três ciclos em que o teste falhando
+foi commitado antes da implementação correspondente:
+
+```bash
+git log --reverse --oneline --all --grep='RED' --grep='GREEN'
+```
+
 Para conferir estilo e build de entrega:
 
 ```bash
