@@ -82,6 +82,26 @@ public sealed class ActiveUserRevalidationTests(FcgApiFixture fixture) : Databas
         Assert.Equal("unauthenticated", problem.GetProperty("code").GetString());
     }
 
+    [Theory]
+    [InlineData(InvalidTokenScenario.Expired)]
+    [InlineData(InvalidTokenScenario.MissingExpiration)]
+    [InlineData(InvalidTokenScenario.WrongIssuer)]
+    [InlineData(InvalidTokenScenario.WrongAudience)]
+    public async Task TokenOutsideTheJwtContract_IsRejected(InvalidTokenScenario scenario)
+    {
+        using var client = CreateClient();
+        var userId = await RegisterAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            ForgeSignedToken(userId.ToString(), scenario));
+
+        using var response = await client.GetAsync(ProtectedEndpoint);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("unauthenticated", problem.GetProperty("code").GetString());
+    }
+
     // O corpo já é coberto pelo contrato da HTTP-02; o risco real é o WWW-Authenticate, onde o
     // JwtBearer pode publicar um error_description e ninguém olha.
     [Fact]
@@ -109,18 +129,31 @@ public sealed class ActiveUserRevalidationTests(FcgApiFixture fixture) : Databas
         }
     }
 
-    private string ForgeSignedToken(string? subject)
+    private string ForgeSignedToken(
+        string? subject,
+        InvalidTokenScenario? scenario = null)
     {
         var jwt = Fixture.Factory.Services.GetRequiredService<IOptions<JwtOptions>>().Value;
-        var claims = subject is null ? [] : new[] { new Claim(JwtRegisteredClaimNames.Sub, subject) };
+        var claims = subject is null
+            ? []
+            : new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, subject),
+                new Claim("role", "User"),
+            };
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
             SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(
-            jwt.Issuer,
-            jwt.Audience,
+            scenario is InvalidTokenScenario.WrongIssuer ? "wrong-issuer" : jwt.Issuer,
+            scenario is InvalidTokenScenario.WrongAudience ? "wrong-audience" : jwt.Audience,
             claims,
-            expires: DateTime.UtcNow.AddMinutes(10),
+            expires: scenario switch
+            {
+                InvalidTokenScenario.Expired => DateTime.UtcNow.AddMinutes(-1),
+                InvalidTokenScenario.MissingExpiration => null,
+                _ => DateTime.UtcNow.AddMinutes(10),
+            },
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -143,13 +176,15 @@ public sealed class ActiveUserRevalidationTests(FcgApiFixture fixture) : Databas
         await dbContext.SaveChangesAsync();
     }
 
-    private static async Task RegisterAsync(HttpClient client)
+    private static async Task<Guid> RegisterAsync(HttpClient client)
     {
         using var response = await client.PostAsJsonAsync(
             "/api/v1/auth/register",
             new { name = "Blocked User", email = Email, password = Password });
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return body.GetProperty("id").GetGuid();
     }
 
     private static async Task<string> LoginAsync(HttpClient client)
@@ -169,4 +204,12 @@ public sealed class ActiveUserRevalidationTests(FcgApiFixture fixture) : Databas
             {
                 AllowAutoRedirect = false,
             });
+
+    public enum InvalidTokenScenario
+    {
+        Expired,
+        MissingExpiration,
+        WrongIssuer,
+        WrongAudience,
+    }
 }
