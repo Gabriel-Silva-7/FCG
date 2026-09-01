@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FCG.Api.Identity;
+namespace FCG.Api.Contracts;
 
 public sealed record ChangeUserStatusRequest
 {

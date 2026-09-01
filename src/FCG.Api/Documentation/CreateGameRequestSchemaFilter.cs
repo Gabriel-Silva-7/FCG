@@ -1,4 +1,4 @@
-using FCG.Api.Catalog;
+using FCG.Api.Contracts;
 using FCG.Application.Catalog;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;

@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using FCG.Api.Identity;
+using FCG.Api.Contracts;
 
 namespace FCG.Api.Tests.Identity;
 

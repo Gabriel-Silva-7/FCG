@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using FCG.Application.Catalog;
 using FCG.Domain.Catalog;
 
-namespace FCG.Api.Catalog;
+namespace FCG.Api.Contracts;
 
 public sealed record CreateGameRequest
 {

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using FCG.Domain.Identity;
 
-namespace FCG.Api.Identity;
+namespace FCG.Api.Contracts;
 
 public sealed record RegisterRequest(
     [param: Required]

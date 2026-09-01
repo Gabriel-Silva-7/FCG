@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FCG.Api.Catalog;
+namespace FCG.Api.Contracts;
 
 public sealed record CreatePromotionRequest
 {

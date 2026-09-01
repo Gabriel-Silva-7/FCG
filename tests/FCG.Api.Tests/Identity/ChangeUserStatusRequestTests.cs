@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using FCG.Api.Identity;
+using FCG.Api.Contracts;
 
 namespace FCG.Api.Tests.Identity;
 

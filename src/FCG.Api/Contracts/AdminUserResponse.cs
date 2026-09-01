@@ -1,4 +1,4 @@
-namespace FCG.Api.Identity;
+namespace FCG.Api.Contracts;
 
 public sealed record AdminUserResponse(
     Guid Id,

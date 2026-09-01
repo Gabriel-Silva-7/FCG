@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using FCG.Api.Catalog;
+using FCG.Api.Contracts;
 using FCG.Application.Catalog;
 using FCG.Domain.Catalog;
 

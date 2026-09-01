@@ -1,3 +1,3 @@
-namespace FCG.Api.Identity;
+namespace FCG.Api.Contracts;
 
 public sealed record UserResponse(Guid Id, string Name, string Email, string Role);

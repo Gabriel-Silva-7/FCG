@@ -1,4 +1,5 @@
 using FCG.Api.Diagnostics;
+using FCG.Api.Contracts;
 using FCG.Api.Errors;
 using FCG.Api.Security;
 using FCG.Application.Common;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCG.Api.Identity;
+namespace FCG.Api.Controllers;
 
 [ApiController]
 [AllowAnonymous]

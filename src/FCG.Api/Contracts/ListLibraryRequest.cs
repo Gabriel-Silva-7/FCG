@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using FCG.Application.Library;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCG.Api.Library;
+namespace FCG.Api.Contracts;
 
 public sealed record ListLibraryRequest
 {

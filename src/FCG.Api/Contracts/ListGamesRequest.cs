@@ -3,7 +3,7 @@ using FCG.Application.Catalog;
 using FCG.Domain.Catalog;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCG.Api.Catalog;
+namespace FCG.Api.Contracts;
 
 public sealed record ListGamesRequest
 {

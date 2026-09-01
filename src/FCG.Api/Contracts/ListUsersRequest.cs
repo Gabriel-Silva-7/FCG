@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using FCG.Application.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCG.Api.Identity;
+namespace FCG.Api.Contracts;
 
 public sealed record ListUsersRequest
 {

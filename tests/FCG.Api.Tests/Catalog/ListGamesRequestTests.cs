@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using FCG.Api.Catalog;
+using FCG.Api.Contracts;
 using FCG.Application.Catalog;
 using FCG.Domain.Catalog;
 

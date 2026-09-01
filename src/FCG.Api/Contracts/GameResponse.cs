@@ -1,4 +1,4 @@
-namespace FCG.Api.Catalog;
+namespace FCG.Api.Contracts;
 
 public sealed record GameResponse(
     Guid Id,

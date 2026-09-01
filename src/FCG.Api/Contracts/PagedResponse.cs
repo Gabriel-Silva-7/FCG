@@ -1,4 +1,4 @@
-namespace FCG.Api.Common;
+namespace FCG.Api.Contracts;
 
 public sealed record PagedResponse<T>(
     IReadOnlyList<T> Items,

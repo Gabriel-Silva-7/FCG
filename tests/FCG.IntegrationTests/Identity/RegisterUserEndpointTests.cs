@@ -1,7 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using FCG.Api.Identity;
+using FCG.Api.Contracts;
+using FCG.Api.Controllers;
 using FCG.Application.Identity;
 using FCG.Domain.Identity;
 using FCG.Infrastructure.Persistence;

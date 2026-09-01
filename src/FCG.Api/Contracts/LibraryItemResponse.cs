@@ -1,4 +1,4 @@
-namespace FCG.Api.Library;
+namespace FCG.Api.Contracts;
 
 public sealed record LibraryItemResponse(
     Guid GameId,

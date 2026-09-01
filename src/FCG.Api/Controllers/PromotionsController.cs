@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using FCG.Api.Contracts;
 using System.Security.Claims;
 using FCG.Api.Diagnostics;
 using FCG.Api.Errors;
@@ -7,7 +8,7 @@ using FCG.Application.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FCG.Api.Catalog;
+namespace FCG.Api.Controllers;
 
 [ApiController]
 [Authorize(Policy = IdentityPolicies.AdminOnly)]
