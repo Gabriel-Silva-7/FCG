@@ -44,3 +44,8 @@ Thumbs.db
 docs/*
 !docs/ddd/
 !docs/ddd/**
+!docs/entrega/
+docs/entrega/*
+!docs/entrega/ROTEIRO.md
+!docs/entrega/RELATORIO.txt
+!docs/entrega/CHECKLIST.md
