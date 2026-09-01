@@ -367,6 +367,48 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public void LibraryOperations_DocumentTheSimulatedAcquisitionContract()
+    {
+        var document = GetDocument();
+        var path = document.Paths["/api/v1/me/library"];
+        var acquire = path.Operations[OperationType.Post];
+        var list = path.Operations[OperationType.Get];
+
+        // O critério 3 da LIB-02 se cumpre neste texto: é o que o avaliador lê no Swagger.
+        Assert.Contains("simulated", acquire.Description, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("does not involve any charge", acquire.Description, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("purchase", acquire.Description, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("payment method", acquire.Description, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Equal(
+            ["201", "400", "401", "404", "409"],
+            acquire.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(
+            ["200", "400", "401"],
+            list.Responses.Keys.Order(StringComparer.Ordinal));
+
+        foreach (var operation in new[] { acquire, list })
+        {
+            Assert.Contains(
+                SchemeName,
+                operation.Security
+                    .SelectMany(requirement => requirement.Keys)
+                    .Select(scheme => scheme.Reference?.Id));
+        }
+
+        // O request carrega apenas gameId — critério 1 da LIB-02.
+        var requestReference = acquire.RequestBody.Content["application/json"].Schema.Reference.Id;
+        var request = document.Components.Schemas[requestReference];
+        Assert.Equal(["gameId"], request.Properties.Keys.Order(StringComparer.Ordinal));
+
+        var itemReference = acquire.Responses["201"].Content["application/json"].Schema.Reference.Id;
+        var item = document.Components.Schemas[itemReference];
+        Assert.Equal(
+            ["acquiredAt", "acquisitionPrice", "gameId", "title"],
+            item.Properties.Keys.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
     public async Task SwaggerEndpoints_AreAvailableInDevelopment()
     {
         using var factory = fixture.Factory.WithWebHostBuilder(
