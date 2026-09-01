@@ -1,10 +1,11 @@
 # Mapa de Contexto
 
-Três contextos delimitados dentro de um monólito modular. Cada um tem seu próprio pedaço de
-`Domain`, `Application`, `Infrastructure` e `Api`.
+Três contextos delimitados dentro de um monólito modular. As fronteiras aparecem diretamente em
+`Domain`, `Application` e `Infrastructure`. A `Api` é a borda de transporte compartilhada e se
+organiza por tipo (`Controllers` e `Contracts`), sem carregar regra de negócio.
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph Identity["Identity — quem é você e o que pode"]
         I1[User]
         I2[Email · PasswordPolicy]
@@ -58,11 +59,13 @@ Nenhum dos três precisou de regra própria. Um contrato, três consequências.
 src/FCG.Domain/{Identity,Catalog,Library}/
 src/FCG.Application/{Identity,Catalog,Library}/
 src/FCG.Infrastructure/{Identity,Catalog,Library}/
-src/FCG.Api/{Identity,Catalog,Library}/
+src/FCG.Api/Controllers/
+src/FCG.Api/Contracts/
 ```
 
-A mesma divisão se repete nas quatro camadas. Cada contexto tem seu módulo de composição
-(`IdentityModule`, `CatalogModule`, `LibraryModule`), registrado no `Program.cs`.
+A divisão por contexto se repete nas três camadas que contêm regras e persistência. Cada contexto
+tem seu módulo de composição (`IdentityModule`, `CatalogModule`, `LibraryModule`), registrado no
+`Program.cs`. Controllers e contratos apenas adaptam esses casos de uso para HTTP.
 
 ## Por que monólito, e não três serviços
 

@@ -1,29 +1,11 @@
 # Arquitetura em camadas
 
 ```mermaid
-flowchart TB
-    subgraph Api["FCG.Api — fala HTTP"]
-        AC[Controllers]
-        AD["DTOs<br/>Request · Response"]
-        AE["Errors · Logging<br/>Security · Documentation"]
-    end
-
-    subgraph App["FCG.Application — casos de uso"]
-        AH[Handlers]
-        AI["Interfaces<br/>IUserRepository · IGameRepository<br/>IPasswordHasher · IClock"]
-    end
-
-    subgraph Dom["FCG.Domain — regras que valem sempre"]
-        DA["Agregados<br/>User · Game · Promotion · LibraryEntry"]
-        DV["Value Object<br/>Email"]
-        DS["Serviço de domínio<br/>PricingService"]
-    end
-
-    subgraph Inf["FCG.Infrastructure — tecnologia concreta"]
-        IR[Repositories]
-        IP["Persistence<br/>DbContext · Configurations · Migrations"]
-        IS["JWT · PBKDF2 · Bootstrap"]
-    end
+flowchart LR
+    Api["FCG.Api — HTTP<br/>Controllers · Contracts<br/>Errors · Logging · Security · Documentation"]
+    App["FCG.Application — casos de uso<br/>Handlers · interfaces de dependência"]
+    Inf["FCG.Infrastructure — tecnologia<br/>Repositories · EF Core/PostgreSQL<br/>JWT · PBKDF2 · Bootstrap"]
+    Dom["FCG.Domain — regras<br/>User · Game · Promotion · LibraryEntry<br/>Email · PricingService"]
 
     Api --> App
     Api --> Inf

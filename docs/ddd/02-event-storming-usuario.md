@@ -41,7 +41,7 @@ flowchart LR
 | 🟪 Política | Formato e normalização de e-mail | `Domain/Identity/Email.cs` |
 | 🟪 Política | Papel nunca vem do cliente | `RegisterRequest` não tem campo `role` — impossibilidade estrutural |
 | 🟩 Agregado | `User` | `Domain/Identity/User.cs` |
-| 🟧 Evento | `UserRegistered` | log em `Api/Identity/AuthController.cs`, com e-mail mascarado |
+| 🟧 Evento | `UserRegistered` | log em `Api/Controllers/AuthController.cs`, com e-mail mascarado |
 | 🟥 Hotspot | E-mail duplicado sob concorrência | pre-check + `UX_Users_Email` + `EmailAlreadyRegisteredException` |
 | 🟦 Comando | `LoginUser` | `Application/Identity/LoginUserHandler.cs` |
 | 🟪 Política | Falha genérica | conta inexistente, senha errada e conta inativa devolvem o **mesmo** `401 invalid_credentials` |
@@ -49,7 +49,7 @@ flowchart LR
 | 🟦 Comando | `ChangeUserStatus` | `Application/Identity/ChangeUserStatusHandler.cs` |
 | 🟪 Política | Concorrência otimista | `xmin` do PostgreSQL como token |
 | 🟥 Hotspot | Administrador desativando a si mesmo | `409 cannot_deactivate_self` — checado **antes** de qualquer escrita |
-| 🟧 Evento | `UserSelfDeactivationRejected` | log em `AdminUsersController` |
+| 🟧 Evento | `UserSelfDeactivationRejected` | log em `Api/Controllers/AdminUsersController.cs` |
 
 ## Os três hotspots, e como foram resolvidos
 

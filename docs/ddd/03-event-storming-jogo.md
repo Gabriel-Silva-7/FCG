@@ -16,14 +16,14 @@ flowchart LR
     A --> C2["🟦 CreatePromotion"]
     C2 --> P3["🟪 Desconto em (0,100]<br/>fim > início, UTC"]
     C2 --> P4["🟪 Jogo tem de estar ativo<br/>FindActiveByIdAsync"]
-    P4 -.inativo.-> H2["🟥 404 resource_not_found"]
+    P4 -.->|inativo| H2["🟥 404 resource_not_found"]
     P3 --> AG2["🟩 Promotion"]
     AG2 --> E2["🟧 PromotionCreated"]
 
     V["🟨 Visitante"] --> C3["🟦 ListGames / GetGame"]
     C3 --> P5["🟪 Somente jogos ativos"]
     C3 --> R["🟫 Catálogo com currentPrice"]
-    AG2 -.maior desconto ativo.-> R
+    AG2 -.->|maior desconto| R
 
     S["Estado observado:<br/>jogo inativo"] --> H3["🟥 Sai do catálogo, bloqueia aquisição,<br/>permanece na biblioteca"]
 ```
@@ -38,7 +38,7 @@ flowchart LR
 | 🟦 Comando | `CreateGame` | `Application/Catalog/CreateGameHandler.cs` |
 | 🟩 Agregado | `Game` | `Domain/Catalog/Game.cs` |
 | 🟪 Política | Autoria registrada | `CreatedByUserId` vem do claim `sub`, nunca do corpo |
-| 🟧 Evento | `GameCreated` | log em `Api/Catalog/GamesController.cs` |
+| 🟧 Evento | `GameCreated` | log em `Api/Controllers/GamesController.cs` |
 | 🟦 Comando | `CreatePromotion` | `Application/Catalog/CreatePromotionHandler.cs` |
 | 🟩 Agregado | `Promotion` | `Domain/Catalog/Promotion.cs` |
 | 🟪 Política | Vigência semiaberta `[início, fim)` | `Promotion.IsActiveAt` — o instante final **não** é ativo |
