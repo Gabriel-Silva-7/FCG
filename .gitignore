@@ -39,4 +39,8 @@ coverage*.info
 .DS_Store
 Thumbs.db
 .claude/
-docs/
+
+# O planejamento local fica fora do produto; os artefatos DDD são parte da entrega.
+docs/*
+!docs/ddd/
+!docs/ddd/**
