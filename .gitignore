@@ -40,13 +40,8 @@ coverage*.info
 Thumbs.db
 .claude/
 
-# O planejamento local fica fora do produto; os artefatos DDD são parte da entrega.
+# O planejamento e o material operacional de entrega ficam fora do produto;
+# os artefatos DDD são a documentação pública da entrega.
 docs/*
 !docs/ddd/
 !docs/ddd/**
-!docs/entrega/
-docs/entrega/*
-!docs/entrega/ROTEIRO.md
-!docs/entrega/DADOS-DEMO.md
-!docs/entrega/RELATORIO.txt
-!docs/entrega/CHECKLIST.md
