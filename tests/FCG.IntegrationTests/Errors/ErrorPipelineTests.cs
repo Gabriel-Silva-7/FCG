@@ -152,6 +152,44 @@ public sealed class ErrorPipelineTests(FcgApiFixture fixture)
         Assert.NotEmpty(nameErrors.EnumerateArray());
     }
 
+    [Theory]
+    // O caminho feliz ignora o Accept: MVC responde JSON mesmo para quem pede XML. O caminho de
+    // erro tem de fazer o mesmo. Os writers embutidos do .NET recusam escrever quando o Accept não
+    // aceita JSON, e essa recusa fazia o IExceptionHandler devolver false — derrubando um 400 no
+    // GlobalExceptionHandler e transformando-o em 500. Um header de request nunca decide o status.
+    [InlineData("text/plain", "/_test/errors/throw-validation", 400, "validation_error")]
+    [InlineData("application/xml", "/_test/errors/throw-validation", 400, "validation_error")]
+    [InlineData("text/plain", "/_test/errors/throw", 500, "internal_error")]
+    [InlineData("application/xml", "/_test/errors/status/404", 404, "resource_not_found")]
+    public async Task ClientThatDoesNotAcceptJson_StillReceivesTheCanonicalProblem(
+        string accept,
+        string requestUri,
+        int expectedStatus,
+        string expectedCode)
+    {
+        using var client = CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.Accept.ParseAdd(accept);
+
+        using var response = await client.SendAsync(request);
+        using var document = await ReadProblemDetailsAsync(response);
+
+        AssertCanonicalProblem(
+            response,
+            document.RootElement,
+            expectedStatus,
+            expectedCode,
+            requestUri);
+        // O 500 não pode vazar a mensagem da exceção; o 400 continua devendo dizer qual campo
+        // está errado, senão a resposta perde o valor que a torna um 400.
+        var json = document.RootElement.GetRawText();
+        Assert.DoesNotContain(ErrorTestController.ExceptionMessage, json, StringComparison.Ordinal);
+        if (expectedCode is "validation_error")
+        {
+            Assert.Contains(ErrorTestController.ValidationFieldMessage, json, StringComparison.Ordinal);
+        }
+    }
+
     private HttpClient CreateClient() =>
         fixture.Factory.CreateClient(
             new WebApplicationFactoryClientOptions

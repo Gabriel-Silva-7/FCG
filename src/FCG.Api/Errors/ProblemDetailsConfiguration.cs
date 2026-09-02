@@ -10,6 +10,9 @@ public static class ProblemDetailsConfiguration
         services.AddProblemDetails(
             options => options.CustomizeProblemDetails = context =>
                 ApplyContract(context.HttpContext, context.ProblemDetails));
+        // Precisa vir depois de AddControllers/AddProblemDetails: a ordem de registro é a
+        // ordem em que ProblemDetailsService consulta os writers, e este é o último recurso.
+        services.AddSingleton<IProblemDetailsWriter, FallbackProblemDetailsWriter>();
         services.AddExceptionHandler<ApplicationValidationExceptionHandler>();
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.Configure<MvcOptions>(

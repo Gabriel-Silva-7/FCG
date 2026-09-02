@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using FCG.Api.Errors;
+using FCG.Application.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FCG.IntegrationTests.Errors;
@@ -9,12 +10,21 @@ namespace FCG.IntegrationTests.Errors;
 public sealed class ErrorTestController : ControllerBase
 {
     public const string ExceptionMessage = "NUNCA_DEVE_VAZAR";
+    public const string ValidationFieldMessage = "Field is invalid.";
 
     [HttpGet("status/{statusCode:int}")]
     public IActionResult ReturnStatus(int statusCode) => new EmptyStatusResult(statusCode);
 
     [HttpGet("throw")]
     public IActionResult Throw() => throw new InvalidOperationException(ExceptionMessage);
+
+    [HttpGet("throw-validation")]
+    public IActionResult ThrowValidation() =>
+        throw new ApplicationValidationException(
+            new Dictionary<string, string[]>(StringComparer.Ordinal)
+            {
+                ["Field"] = [ValidationFieldMessage],
+            });
 
     [HttpGet("throw-argument")]
     public IActionResult ThrowArgument() => throw new ArgumentException(ExceptionMessage);

@@ -79,8 +79,14 @@ public sealed class RegisterUserEndpointTests(FcgApiFixture fixture) : DatabaseB
         Assert.False(eventEntry.HasField("ActorUserId"));
     }
 
-    [Fact]
-    public async Task Register_WithInvalidDomainInput_ReturnsCanonicalValidationProblem()
+    [Theory]
+    // Entrada inválida do domínio nunca pode virar 500: quem digita errado é o cliente, e a
+    // resposta tem de dizer qual campo está errado.
+    [InlineData("missing-domain@", "abcdefgh")]
+    [InlineData("gabriel-sem-arroba", "12345678")]
+    public async Task Register_WithInvalidDomainInput_ReturnsCanonicalValidationProblem(
+        string email,
+        string password)
     {
         using var client = CreateClient();
 
@@ -89,8 +95,8 @@ public sealed class RegisterUserEndpointTests(FcgApiFixture fixture) : DatabaseB
             new
             {
                 name = "Valid Name",
-                email = "missing-domain@",
-                password = "abcdefgh",
+                email,
+                password,
             });
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
