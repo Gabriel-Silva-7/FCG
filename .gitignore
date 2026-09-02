@@ -45,3 +45,6 @@ Thumbs.db
 docs/*
 !docs/ddd/
 !docs/ddd/**
+
+# Vídeo — só o MP4 compactado é versionado (o .mov original passa de 100 MiB)
+VIDEO/*.mov
