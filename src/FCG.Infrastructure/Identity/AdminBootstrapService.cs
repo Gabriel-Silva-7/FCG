@@ -10,6 +10,7 @@ public sealed class AdminBootstrapService(
     IClock clock)
 {
     private const string AdministratorName = "Administrator";
+    private const string PlayerName = "Player";
 
     public async Task<AdminBootstrapOutcome> ExecuteAsync(
         string emailValue,
@@ -47,6 +48,32 @@ public sealed class AdminBootstrapService(
             AdminBootstrapResult.Created,
             administrator.Id,
             administrator.Email.Value);
+    }
+
+    // O usuário comum existe só para a demonstração: permite mostrar 403 e isolamento de
+    // biblioteca sem precisar cadastrar alguém ao vivo. Diferente do administrador, um conflito
+    // aqui não derruba o startup — qualquer conta já existente com esse e-mail serve.
+    public async Task<AdminBootstrapResult> EnsurePlayerAsync(
+        string emailValue,
+        string password,
+        CancellationToken cancellationToken)
+    {
+        var email = Email.Create(emailValue);
+        PasswordPolicy.EnsureIsValid(password);
+
+        if (await userRepository.FindByEmailAsync(email, cancellationToken) is not null)
+        {
+            return AdminBootstrapResult.AlreadyConfigured;
+        }
+
+        userRepository.Add(User.Register(
+            PlayerName,
+            email,
+            passwordHasher.Hash(password),
+            clock.UtcNow));
+        await userRepository.SaveChangesAsync(cancellationToken);
+
+        return AdminBootstrapResult.Created;
     }
 }
 

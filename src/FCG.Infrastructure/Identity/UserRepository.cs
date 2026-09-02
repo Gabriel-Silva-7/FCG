@@ -31,6 +31,11 @@ public sealed class UserRepository(FcgDbContext dbContext) : IUserRepository
             .AsNoTracking()
             .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
 
+    public Task<User?> FindByIdForUpdateAsync(
+        Guid id,
+        CancellationToken cancellationToken) =>
+        dbContext.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+
     public async Task<PagedResult<AdminUserSummary>> SearchAsync(
         string? search,
         int page,
@@ -142,6 +147,8 @@ public sealed class UserRepository(FcgDbContext dbContext) : IUserRepository
 
     public void Add(User user) => dbContext.Users.Add(user);
 
+    public void Remove(User user) => dbContext.Users.Remove(user);
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
@@ -152,6 +159,10 @@ public sealed class UserRepository(FcgDbContext dbContext) : IUserRepository
         {
             throw new EmailAlreadyRegisteredException(exception);
         }
+        catch (DbUpdateException exception) when (IsForeignKeyViolation(exception))
+        {
+            throw new UserDeletionRestrictedException(exception);
+        }
     }
 
     private static bool IsUniqueEmailViolation(DbUpdateException exception) =>
@@ -159,5 +170,11 @@ public sealed class UserRepository(FcgDbContext dbContext) : IUserRepository
         {
             SqlState: PostgresErrorCodes.UniqueViolation,
             ConstraintName: UserConfiguration.UniqueEmailIndexName,
+        };
+
+    private static bool IsForeignKeyViolation(DbUpdateException exception) =>
+        exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.ForeignKeyViolation,
         };
 }

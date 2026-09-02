@@ -96,6 +96,11 @@ public sealed class ListUsersHandlerTests
         public Task<User?> FindByIdAsync(Guid id, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
+        public Task<User?> FindByIdForUpdateAsync(
+            Guid id,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public Task<AdminUserSummary?> ChangeStatusAsync(
             Guid userId,
             bool isActive,
@@ -104,6 +109,8 @@ public sealed class ListUsersHandlerTests
             throw new NotSupportedException();
 
         public void Add(User user) => throw new NotSupportedException();
+
+        public void Remove(User user) => throw new NotSupportedException();
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) =>
             throw new NotSupportedException();

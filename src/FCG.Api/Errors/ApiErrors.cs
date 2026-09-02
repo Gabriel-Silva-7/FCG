@@ -23,11 +23,20 @@ public static class ApiErrors
     public static readonly ApiError EmailAlreadyRegistered =
         new("email_already_registered", StatusCodes.Status409Conflict, "Email already registered");
 
+    public static readonly ApiError InvalidCurrentPassword =
+        new("invalid_current_password", StatusCodes.Status400BadRequest, "Invalid current password");
+
     public static readonly ApiError ConcurrencyConflict =
         new("concurrency_conflict", StatusCodes.Status409Conflict, "Concurrency conflict");
 
     public static readonly ApiError CannotDeactivateSelf =
         new("cannot_deactivate_self", StatusCodes.Status409Conflict, "Cannot deactivate own account");
+
+    public static readonly ApiError CannotDeleteSelf =
+        new("cannot_delete_self", StatusCodes.Status409Conflict, "Cannot delete own account");
+
+    public static readonly ApiError UserHasDependencies =
+        new("user_has_dependencies", StatusCodes.Status409Conflict, "User has related records");
 
     public static readonly ApiError GameAlreadyAcquired =
         new("game_already_acquired", StatusCodes.Status409Conflict, "Game already acquired");
@@ -46,8 +55,11 @@ public static class ApiErrors
         Forbidden,
         ResourceNotFound,
         EmailAlreadyRegistered,
+        InvalidCurrentPassword,
         ConcurrencyConflict,
         CannotDeactivateSelf,
+        CannotDeleteSelf,
+        UserHasDependencies,
         GameAlreadyAcquired,
         RateLimitExceeded,
         InternalError,

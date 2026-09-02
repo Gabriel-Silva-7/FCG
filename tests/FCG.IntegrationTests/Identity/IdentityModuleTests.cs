@@ -51,6 +51,7 @@ public sealed class IdentityModuleTests
     {
         var values = JwtConfiguration(ValidSigningKey);
         values["AdminBootstrap:Email"] = "admin@example.com";
+        values["AdminBootstrap:Password"] = string.Empty;
         using var host = BuildHost(values, Environments.Development);
 
         await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());

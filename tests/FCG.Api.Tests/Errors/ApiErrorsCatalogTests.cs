@@ -29,8 +29,11 @@ public sealed class ApiErrorsCatalogTests
     [InlineData("forbidden", 403)]
     [InlineData("resource_not_found", 404)]
     [InlineData("email_already_registered", 409)]
+    [InlineData("invalid_current_password", 400)]
     [InlineData("concurrency_conflict", 409)]
     [InlineData("cannot_deactivate_self", 409)]
+    [InlineData("cannot_delete_self", 409)]
+    [InlineData("user_has_dependencies", 409)]
     [InlineData("game_already_acquired", 409)]
     [InlineData("rate_limit_exceeded", 429)]
     [InlineData("internal_error", 500)]
@@ -47,7 +50,7 @@ public sealed class ApiErrorsCatalogTests
     [Fact]
     public void Catalog_HasExactlyThePublishedNumberOfEntries()
     {
-        Assert.Equal(11, ApiErrors.All.Count);
+        Assert.Equal(14, ApiErrors.All.Count);
     }
 
     [Theory]

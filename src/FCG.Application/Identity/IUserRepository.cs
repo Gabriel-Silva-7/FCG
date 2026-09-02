@@ -11,6 +11,8 @@ public interface IUserRepository
 
     Task<User?> FindByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<User?> FindByIdForUpdateAsync(Guid id, CancellationToken cancellationToken);
+
     Task<PagedResult<AdminUserSummary>> SearchAsync(
         string? search,
         int page,
@@ -24,6 +26,8 @@ public interface IUserRepository
         CancellationToken cancellationToken);
 
     void Add(User user);
+
+    void Remove(User user);
 
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

@@ -57,6 +57,54 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void UpdateProfile_WhenDataIsValid_ChangesNameAndEmail()
+    {
+        var user = RegisterUser();
+        var email = Email.Create("updated@example.com");
+
+        user.UpdateProfile("  Gabriel Updated  ", email);
+
+        Assert.Equal("Gabriel Updated", user.Name);
+        Assert.Same(email, user.Email);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateProfile_WhenNameIsEmpty_ThrowsArgumentException(string name)
+    {
+        var user = RegisterUser();
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => user.UpdateProfile(name, Email.Create("updated@example.com")));
+
+        Assert.Equal("name", exception.ParamName);
+    }
+
+    [Fact]
+    public void ChangePasswordHash_WhenHashIsValid_ChangesPasswordHash()
+    {
+        var user = RegisterUser();
+
+        user.ChangePasswordHash("updated-password-hash");
+
+        Assert.Equal("updated-password-hash", user.PasswordHash);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ChangePasswordHash_WhenHashIsEmpty_ThrowsArgumentException(string passwordHash)
+    {
+        var user = RegisterUser();
+
+        var exception = Assert.Throws<ArgumentException>(
+            () => user.ChangePasswordHash(passwordHash));
+
+        Assert.Equal("passwordHash", exception.ParamName);
+    }
+
+    [Fact]
     public void Register_TrimsName()
     {
         var user = RegisterUser(name: "  Gabriel Silva  ");

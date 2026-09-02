@@ -139,6 +139,11 @@ public sealed class RegisterUserHandlerTests
             CancellationToken cancellationToken) =>
             Task.FromResult<User?>(null);
 
+        public Task<User?> FindByIdForUpdateAsync(
+            Guid id,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public Task<PagedResult<AdminUserSummary>> SearchAsync(
             string? search,
             int page,
@@ -154,6 +159,8 @@ public sealed class RegisterUserHandlerTests
             throw new NotSupportedException();
 
         public void Add(User user) => AddedUsers.Add(user);
+
+        public void Remove(User user) => throw new NotSupportedException();
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)
         {

@@ -64,6 +64,17 @@ Em `Development`, o bootstrap cria a conta apenas quando ela ainda não existe. 
 administrador ativo com o mesmo e-mail, a inicialização é idempotente. Uma conta comum existente
 nunca é promovida silenciosamente.
 
+### Credenciais locais reproduzíveis
+
+Para a demonstração manual, o administrador pode ser configurado pelo bootstrap com
+`admin.video@fcg.local` / `VideoAdmin!2026`. O usuário comum é criado pela própria rota de cadastro
+como `gabriel.video@example.com` / `VideoUser!2026`. Essas credenciais são exclusivamente locais e
+não são ativadas automaticamente em outros ambientes.
+
+Os testes de integração criam usuários descartáveis com os papéis `User` e `Administrator` antes
+de cada cenário e apagam os dados entre testes. Assim, autorização e CRUD são verificados sem
+depender do estado da máquina do desenvolvedor.
+
 ## Banco e migrations
 
 Com o PostgreSQL saudável, aplique todas as migrations:
@@ -96,8 +107,11 @@ podem ser chamadas sem autenticação; as rotas de criação e administração e
 | `POST` | `/api/v1/auth/register` | Público |
 | `POST` | `/api/v1/auth/login` | Público |
 | `GET` | `/api/v1/me` | User ou Administrator |
+| `PATCH` | `/api/v1/me` | User ou Administrator |
+| `PATCH` | `/api/v1/me/password` | User ou Administrator |
 | `GET` | `/api/v1/admin/users` | Administrator |
 | `PATCH` | `/api/v1/admin/users/{id}/status` | Administrator |
+| `DELETE` | `/api/v1/admin/users/{id}` | Administrator |
 | `GET` | `/api/v1/games` | Público |
 | `GET` | `/api/v1/games/{id}` | Público |
 | `POST` | `/api/v1/games` | Administrator |
@@ -108,13 +122,35 @@ podem ser chamadas sem autenticação; as rotas de criação e administração e
 Erros seguem `application/problem+json` e incluem `type`, `status`, `code` e `traceId`. Senhas,
 hashes e tokens não fazem parte das respostas ou dos logs estruturados.
 
+### Usuários criados automaticamente
+
+Ao subir em Development, a aplicação cria dois usuários se ainda não existirem. Use-os para
+avaliar sem precisar cadastrar nada:
+
+| Papel | E-mail | Senha |
+|---|---|---|
+| Administrador | `admin@fcg.local` | `Admin@123456` |
+| Usuário comum | `player@fcg.local` | `Player@123456` |
+
+São credenciais de desenvolvimento e existem só para avaliação e demonstração. O seed **não roda
+fora de Development**, e não há endpoint público que crie administrador. Para usar outras
+credenciais, sobrescreva por `user-secrets`:
+
+```bash
+dotnet user-secrets set "AdminBootstrap:Email" "outro@exemplo.local" --project src/FCG.Api
+dotnet user-secrets set "AdminBootstrap:Password" "<senha-forte>" --project src/FCG.Api
+```
+
+Se o e-mail do administrador já pertencer a uma conta comum, o startup **falha** em vez de promover
+a conta silenciosamente.
+
 ## Testes
 
 ```bash
 dotnet test FiapCloudGames.sln
 ```
 
-São **507 testes** divididos entre Domain, Application, Api e Integration. A suíte de integração
+São **553 testes** divididos entre Domain, Application, Api e Integration. A suíte de integração
 sobe um PostgreSQL 16 descartável com Testcontainers e aplica a cadeia completa de migrations;
 portanto, o Docker precisa estar em execução. Nenhum teste relacional usa EF InMemory.
 

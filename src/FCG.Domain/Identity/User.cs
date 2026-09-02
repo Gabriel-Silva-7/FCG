@@ -55,6 +55,20 @@ public sealed class User
 
     public void ChangeActiveStatus(bool isActive) => IsActive = isActive;
 
+    public void UpdateProfile(string name, Email email)
+    {
+        ArgumentNullException.ThrowIfNull(email);
+
+        Name = NormalizeName(name);
+        Email = email;
+    }
+
+    public void ChangePasswordHash(string passwordHash)
+    {
+        EnsureValidPasswordHash(passwordHash);
+        PasswordHash = passwordHash;
+    }
+
     private static User Create(
         string name,
         Email email,
@@ -62,9 +76,25 @@ public sealed class User
         UserRole role,
         DateTime createdAtUtc)
     {
-        ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(email);
-        ArgumentNullException.ThrowIfNull(passwordHash);
+        var normalizedName = NormalizeName(name);
+        EnsureValidPasswordHash(passwordHash);
+
+        DomainGuard.EnsureUtc(createdAtUtc, nameof(createdAtUtc));
+
+        return new User(
+            Guid.NewGuid(),
+            normalizedName,
+            email,
+            passwordHash,
+            role,
+            true,
+            createdAtUtc);
+    }
+
+    private static string NormalizeName(string name)
+    {
+        ArgumentNullException.ThrowIfNull(name);
 
         var normalizedName = name.Trim();
 
@@ -74,6 +104,13 @@ public sealed class User
                 $"Name must contain between 1 and {MaxNameLength} characters.",
                 nameof(name));
         }
+
+        return normalizedName;
+    }
+
+    private static void EnsureValidPasswordHash(string passwordHash)
+    {
+        ArgumentNullException.ThrowIfNull(passwordHash);
 
         if (string.IsNullOrWhiteSpace(passwordHash))
         {
@@ -86,16 +123,5 @@ public sealed class User
                 $"Password hash cannot exceed {MaxPasswordHashLength} characters.",
                 nameof(passwordHash));
         }
-
-        DomainGuard.EnsureUtc(createdAtUtc, nameof(createdAtUtc));
-
-        return new User(
-            Guid.NewGuid(),
-            normalizedName,
-            email,
-            passwordHash,
-            role,
-            true,
-            createdAtUtc);
     }
 }

@@ -15,6 +15,7 @@ namespace FCG.Api.Controllers;
 public sealed class AdminUsersController(
     ListUsersHandler listUsersHandler,
     ChangeUserStatusHandler changeUserStatusHandler,
+    DeleteUserHandler deleteUserHandler,
     ILogger<AdminUsersController> logger) : ControllerBase
 {
     /// <summary>
@@ -81,6 +82,53 @@ public sealed class AdminUsersController(
             ChangeUserStatusStatus.CannotDeactivateSelf => RejectSelfDeactivation(actorUserId, id),
             _ => throw new InvalidOperationException($"Unexpected change status result: {result.Status}."),
         };
+    }
+
+    /// <summary>
+    /// Permanently deletes a user that has no protected related records.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(User.FindFirstValue(JwtRegisteredClaimNames.Sub), out var actorUserId))
+        {
+            return Unauthorized(
+                ApiErrors.Unauthenticated.ToProblemDetails(HttpContext.Request.Path));
+        }
+
+        var result = await deleteUserHandler.HandleAsync(
+            new DeleteUserCommand(actorUserId, id),
+            cancellationToken);
+
+        return result switch
+        {
+            DeleteUserStatus.Deleted => UserDeleted(actorUserId, id),
+            DeleteUserStatus.NotFound => NotFound(
+                ApiErrors.ResourceNotFound.ToProblemDetails(HttpContext.Request.Path)),
+            DeleteUserStatus.CannotDeleteSelf => Conflict(
+                ApiErrors.CannotDeleteSelf.ToProblemDetails(HttpContext.Request.Path)),
+            DeleteUserStatus.HasDependencies => Conflict(
+                ApiErrors.UserHasDependencies.ToProblemDetails(HttpContext.Request.Path)),
+            _ => throw new InvalidOperationException($"Unexpected delete user result: {result}."),
+        };
+    }
+
+    private IActionResult UserDeleted(Guid actorUserId, Guid targetUserId)
+    {
+        logger.LogInformation(
+            "UserDeleted {ActorUserId} {TargetUserId} {TraceId}",
+            actorUserId,
+            targetUserId,
+            TraceIdentity.Resolve(HttpContext));
+
+        return NoContent();
     }
 
     private IActionResult StatusChanged(Guid actorUserId, AdminUserSummary user)

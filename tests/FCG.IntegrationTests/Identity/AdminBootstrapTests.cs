@@ -20,7 +20,7 @@ public sealed class AdminBootstrapTests(FcgApiFixture fixture) : DatabaseBackedT
     private const string ValidSigningKey = "0123456789abcdef0123456789abcdef";
 
     [Fact]
-    public async Task Startup_InDevelopmentWithoutConfiguration_OnlyLogsAWarning()
+    public async Task Startup_WithSeedExplicitlyDisabled_OnlyLogsAWarning()
     {
         var logs = new CapturingLoggerProvider();
         using var host = BuildHost(Environments.Development, logs);
@@ -192,6 +192,13 @@ public sealed class AdminBootstrapTests(FcgApiFixture fixture) : DatabaseBackedT
             ["Jwt:Audience"] = "fcg-clients",
             ["Jwt:SigningKey"] = ValidSigningKey,
             ["Jwt:ExpirationMinutes"] = "60",
+            // Estes testes exercitam o bootstrap do administrador; o seed do usuário comum é
+            // desligado para que "o único usuário" continue significando o administrador.
+            ["AdminBootstrap:PlayerEmail"] = string.Empty,
+            ["AdminBootstrap:PlayerPassword"] = string.Empty,
+            // Sem estes, os defaults de Development entrariam e não haveria cenário "não configurado".
+            ["AdminBootstrap:Email"] = string.Empty,
+            ["AdminBootstrap:Password"] = string.Empty,
         };
 
         if (email is not null)
@@ -236,7 +243,7 @@ public sealed class AdminBootstrapTests(FcgApiFixture fixture) : DatabaseBackedT
     {
         await using var scope = Fixture.Factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<FcgDbContext>();
-        var user = await dbContext.Users.SingleAsync();
+        var user = await dbContext.Users.SingleAsync(current => current.Email == Email.Create(AdminEmail));
         dbContext.Entry(user).Property(current => current.IsActive).CurrentValue = false;
         await dbContext.SaveChangesAsync();
     }
@@ -245,7 +252,7 @@ public sealed class AdminBootstrapTests(FcgApiFixture fixture) : DatabaseBackedT
     {
         await using var scope = Fixture.Factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<FcgDbContext>();
-        return await dbContext.Users.AsNoTracking().SingleOrDefaultAsync();
+        return await dbContext.Users.AsNoTracking().SingleOrDefaultAsync(user => user.Email == Email.Create(AdminEmail));
     }
 
     private async Task<int> CountUsersAsync()

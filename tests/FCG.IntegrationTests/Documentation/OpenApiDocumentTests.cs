@@ -161,6 +161,64 @@ public sealed class OpenApiDocumentTests(FcgApiFixture fixture)
     }
 
     [Fact]
+    public void UpdateMeOperation_DocumentsProfileFieldsAndProtectedResponses()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/me"].Operations[OperationType.Patch];
+
+        Assert.Equal(
+            ["200", "400", "401", "409"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains(
+            SchemeName,
+            operation.Security
+                .SelectMany(requirement => requirement.Keys)
+                .Select(scheme => scheme.Reference?.Id));
+
+        var requestReference = operation.RequestBody.Content["application/json"].Schema.Reference.Id;
+        var request = document.Components.Schemas[requestReference];
+        Assert.Equal(["email", "name"], request.Required.Order(StringComparer.Ordinal));
+        Assert.DoesNotContain("role", request.Properties.Keys);
+        Assert.DoesNotContain("isActive", request.Properties.Keys);
+    }
+
+    [Fact]
+    public void ChangePasswordOperation_DoesNotExposePasswordsInAResponse()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/me/password"]
+            .Operations[OperationType.Patch];
+
+        Assert.Equal(
+            ["204", "400", "401"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Empty(operation.Responses["204"].Content);
+
+        var requestReference = operation.RequestBody.Content["application/json"].Schema.Reference.Id;
+        var request = document.Components.Schemas[requestReference];
+        Assert.Equal(
+            ["currentPassword", "newPassword"],
+            request.Required.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void DeleteUserOperation_IsDocumentedAsAdminOnly()
+    {
+        var document = GetDocument();
+        var operation = document.Paths["/api/v1/admin/users/{id}"]
+            .Operations[OperationType.Delete];
+
+        Assert.Equal(
+            ["204", "401", "403", "404", "409"],
+            operation.Responses.Keys.Order(StringComparer.Ordinal));
+        Assert.Contains(
+            SchemeName,
+            operation.Security
+                .SelectMany(requirement => requirement.Keys)
+                .Select(scheme => scheme.Reference?.Id));
+    }
+
+    [Fact]
     public void AdminUsersOperation_DocumentsItsPagedAdminOnlyContract()
     {
         var document = GetDocument();

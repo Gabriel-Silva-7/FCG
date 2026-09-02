@@ -144,6 +144,11 @@ public sealed class ChangeUserStatusHandlerTests
             CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
+        public Task<User?> FindByIdForUpdateAsync(
+            Guid id,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public Task<PagedResult<AdminUserSummary>> SearchAsync(
             string? search,
             int page,
@@ -152,6 +157,8 @@ public sealed class ChangeUserStatusHandlerTests
             throw new NotSupportedException();
 
         public void Add(User user) => throw new NotSupportedException();
+
+        public void Remove(User user) => throw new NotSupportedException();
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) =>
             throw new NotSupportedException();

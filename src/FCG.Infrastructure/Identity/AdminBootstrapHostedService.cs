@@ -42,6 +42,17 @@ public sealed class AdminBootstrapHostedService(
 
             logger.LogInformation("AdminBootstrapCompleted {Result}", outcome.Result);
 
+            if (!string.IsNullOrWhiteSpace(bootstrapOptions.PlayerEmail) &&
+                !string.IsNullOrWhiteSpace(bootstrapOptions.PlayerPassword))
+            {
+                var playerResult = await bootstrap.EnsurePlayerAsync(
+                    bootstrapOptions.PlayerEmail,
+                    bootstrapOptions.PlayerPassword,
+                    cancellationToken);
+
+                logger.LogInformation("PlayerSeedCompleted {Result}", playerResult);
+            }
+
             if (outcome.Result is AdminBootstrapResult.Created)
             {
                 logger.LogInformation(

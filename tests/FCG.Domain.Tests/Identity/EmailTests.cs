@@ -67,6 +67,11 @@ public sealed class EmailTests
     [InlineData("user+tag@example.com")]
     [InlineData("user@sub.example.com")]
     [InlineData("user@example.co.uk")]
+    [InlineData("user@prefeitura.eti.br")]
+    [InlineData("user@example.bio")]
+    [InlineData("user@example.us")]
+    [InlineData("user@example.cc")]
+    [InlineData("user@example.io")]
     public void Create_WhenAddressIsValid_AcceptsEmail(string value)
     {
         var email = Email.Create(value);

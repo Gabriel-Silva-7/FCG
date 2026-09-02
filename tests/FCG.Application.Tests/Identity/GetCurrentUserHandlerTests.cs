@@ -59,6 +59,11 @@ public sealed class GetCurrentUserHandlerTests
             return Task.FromResult(user);
         }
 
+        public Task<User?> FindByIdForUpdateAsync(
+            Guid id,
+            CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public Task<PagedResult<AdminUserSummary>> SearchAsync(
             string? search,
             int page,
@@ -74,6 +79,8 @@ public sealed class GetCurrentUserHandlerTests
             throw new NotSupportedException();
 
         public void Add(User newUser) => throw new NotSupportedException();
+
+        public void Remove(User userToRemove) => throw new NotSupportedException();
 
         public Task SaveChangesAsync(CancellationToken cancellationToken) =>
             throw new NotSupportedException();
